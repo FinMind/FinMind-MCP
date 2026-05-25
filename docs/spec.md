@@ -297,13 +297,9 @@ Token 未設 / 401 時 server 回 MCP error，host 端按 `errors.md` 顯示引�
 
 **Token：** `/plugin` 不會於安裝時 prompt；`${FINMIND_TOKEN}` 讀使用者環境變數，需啟動 Claude 前 `export FINMIND_TOKEN=...`（與 GitHub/Jira 等需 token 的 MCP 一致）。README 安裝段須寫明。
 
-**免 PyPI 的過渡做法：** PyPI 未發布前，把 `args` 改為直接從 GitHub 跑，即可先讓 `/plugin` 可用：
+**套件來源：** `finmind-mcp` 已發佈於 PyPI，manifest 用 `args: ["finmind-mcp"]`（`uvx` 從 PyPI 取得穩定版）。
 
-```json
-"args": ["--from", "git+https://github.com/FinMind/FinMind-MCP", "finmind-mcp"]
-```
-
-PyPI 發布後再換回 `["finmind-mcp"]`。
+> 若要測尚未發版的開發版，可暫時改 `args: ["--from", "git+https://github.com/FinMind/FinMind-MCP", "finmind-mcp"]` 直接跑 GitHub HEAD。
 
 **兩個前提（缺一不可）：**
 1. GitHub repo 要 commit + push `.claude-plugin/`（+ 套件原始碼）→ `/plugin` 才讀得到 catalog。
@@ -336,7 +332,7 @@ Gemini CLI 的對應物是 **extension**（git 安裝、可內含 MCP server）�
 gemini extensions install https://github.com/FinMind/FinMind-MCP
 ```
 
-- 同 Claude：refer 的是 GitHub repo，不是 PyPI；`uvx` 在使用者端抓套件（未發 PyPI 可用 `--from git+https://github.com/FinMind/FinMind-MCP`）。
+- 同 Claude：extension manifest 來自 GitHub repo，但 `uvx finmind-mcp` 從 PyPI 抓套件（開發版可用 `--from git+https://github.com/FinMind/FinMind-MCP`）。
 - Token 一樣走 `${FINMIND_TOKEN}` 環境變數。
 - 基本路徑（不做 extension）：`gemini mcp add`（見 5.6 `install/gemini-cli.md`）。
 
