@@ -1,0 +1,77 @@
+name: Publish to PyPI
+
+# 推一個新的版本 tag（vX.Y.Z）就自動 build + 上傳 PyPI（也可手動 workflow_dispatch）。
+# 用 PyPI Trusted Publishing（OIDC）—— 不需要存任何 API token / secret。
+#
+# 一次性設定（使用者在 PyPI 端做，我做不了）：
+#   1. https://pypi.org/manage/account/publishing/ → Add a new pending publisher
+#        PyPI Project Name: finmind-mcp
+#        Owner:             FinMind
+#        Repository name:   FinMind-MCP
+#        Workflow name:     publish.yml
+#        Environment name:  pypi
+#      （專案還沒上 PyPI 沒關係，用 "pending publisher"，第一次發版會自動建立專案）
+#   2. GitHub repo → Settings → Environments → 新增名為 `pypi` 的 environment
+#      （名稱要跟上面 PyPI 設定一致；可另設保護規則，例如限定 reviewer 才能發版）
+#
+# 發版流程（tag 驅動）：
+#   - 先把 pyproject.toml 的 version bump 好（PyPI 版本號不可重複）
+#   - git tag vX.Y.Z（要跟 version 一致，下方 job 會檢查）
+#   - git push origin vX.Y.Z   ← 推 tag 就觸發本 workflow，自動 build → 上傳 PyPI
+
+on:
+  push:
+    tags:
+      - "v[0-9]*"   # vX.Y.Z
+      - "[0-9]*"    # 也接受沒有 v 前綴的 X.Y.Z
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Verify pushed tag matches pyproject version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          VERSION=$(grep -m1 '^version' pyproject.toml | sed -E 's/.*"(.*)".*/\1/')
+          TAG="${GITHUB_REF_NAME#v}"
+          echo "pyproject version: $VERSION   pushed tag: $TAG"
+          if [ "$VERSION" != "$TAG" ]; then
+            echo "::error::pushed tag ($TAG) does not match pyproject version ($VERSION). Bump the version or fix the tag."
+            exit 1
+          fi
+
+      - name: Build sdist + wheel
+        run: uv build
+
+      - name: Check distribution metadata
+        run: uvx twine check dist/*
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  pypi-publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/finmind-mcp/
+    permissions:
+      id-token: write   # OIDC token for PyPI Trusted Publishing — no password needed
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
