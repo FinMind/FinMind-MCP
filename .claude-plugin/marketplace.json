@@ -1,0 +1,14 @@
+{
+  "name": "finmind-official",
+  "owner": { "name": "FinMind", "email": "finmind.tw@gmail.com" },
+  "description": "Official FinMind plugins (financial data MCP server)",
+  "plugins": [
+    {
+      "name": "finmind-mcp",
+      "source": { "source": "github", "repo": "FinMind/FinMind-MCP" },
+      "description": "FinMind financial data MCP server — Taiwan/global stock, derivatives, macro",
+      "homepage": "https://github.com/FinMind/FinMind-MCP",
+      "license": "Apache-2.0"
+    }
+  ]
+}

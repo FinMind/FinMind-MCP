@@ -1,0 +1,16 @@
+{
+  "name": "finmind-mcp",
+  "description": "FinMind 台股／期權／總經／全球金融資料 MCP server",
+  "version": "0.1.0",
+  "author": { "name": "FinMind", "email": "finmind.tw@gmail.com" },
+  "homepage": "https://github.com/FinMind/FinMind-MCP",
+  "repository": "https://github.com/FinMind/FinMind-MCP",
+  "license": "Apache-2.0",
+  "mcpServers": {
+    "finmind": {
+      "command": "uvx",
+      "args": ["--from", "git+https://github.com/FinMind/FinMind-MCP", "finmind-mcp"],
+      "env": { "FINMIND_TOKEN": "${FINMIND_TOKEN}" }
+    }
+  }
+}

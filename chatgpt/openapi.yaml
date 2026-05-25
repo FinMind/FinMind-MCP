@@ -1,0 +1,145 @@
+openapi: 3.1.0
+info:
+  title: FinMind API
+  description: FinMind 金融資料 API，支援台股、期權、總經與全球資料查詢。
+  version: "4.0"
+servers:
+  - url: https://api.finmindtrade.com/api
+security:
+  - bearerAuth: []
+paths:
+  /v4/data:
+    get:
+      operationId: queryDataset
+      summary: 通用金融資料查詢
+      description: 依 dataset 名稱查詢 FinMind 資料，可帶 data_id 與日期區間。
+      parameters:
+        - name: dataset
+          in: query
+          required: true
+          description: Dataset 名稱（見 enum）
+          schema:
+            type: string
+            enum:
+              - TaiwanStockPrice
+              - TaiwanStockMonthRevenue
+              - TaiwanStockFinancialStatements
+              - TaiwanStockDividend
+              - TaiwanStockDividendResult
+              - TaiwanStockInstitutionalInvestorsBuySell
+              - TaiwanStockShareholding
+              - TaiwanStockMarginPurchaseShortSale
+              - TaiwanStockPER
+              - TaiwanFuturesDaily
+              - TaiwanOptionDaily
+              - TaiwanFuturesInstitutionalInvestors
+              - TaiwanExchangeRate
+              - InterestRate
+              - GoldPrice
+              - USStockPrice
+              - TaiwanStockInfo
+        - name: data_id
+          in: query
+          required: false
+          description: 標的代號（股票、期貨、幣別等），部分 dataset 必填。
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          required: false
+          description: 起始日期 YYYY-MM-DD。
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          required: false
+          description: 結束日期 YYYY-MM-DD。
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: 查詢成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          $ref: "#/components/responses/PaymentRequired"
+        "5XX":
+          $ref: "#/components/responses/UpstreamError"
+  /v4/datalist:
+    get:
+      operationId: listDatasets
+      summary: 列出可用 dataset
+      description: 回傳目前 token 可存取的 dataset 清單。
+      responses:
+        "200":
+          description: 查詢成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetList"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "5XX":
+          $ref: "#/components/responses/UpstreamError"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    DataResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        msg:
+          type: string
+          example: success
+        data:
+          type: array
+          description: 結果列陣列，欄位依 dataset 而異。
+          items:
+            type: object
+            additionalProperties: true
+    DatasetList:
+      type: object
+      properties:
+        status:
+          type: integer
+        data:
+          type: array
+          items:
+            type: string
+    Error:
+      type: object
+      properties:
+        status:
+          type: integer
+        msg:
+          type: string
+  responses:
+    Unauthorized:
+      description: Token 無效或未設定
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    PaymentRequired:
+      description: 此 dataset 需 sponsor 方案
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    UpstreamError:
+      description: 上游暫時無法連線
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
