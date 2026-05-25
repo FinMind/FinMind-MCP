@@ -17,6 +17,8 @@ jobs:
         python-version: ["3.10", "3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # hatch-vcs 需要 tags/history 才能決定版本（build 本套件時）
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5

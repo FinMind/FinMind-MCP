@@ -1,6 +1,6 @@
 [project]
 name = "finmind-mcp"
-version = "0.1.0"
+dynamic = ["version"]   # 版本由 git tag 決定（hatch-vcs），發版只要推 tag，不用改這裡
 description = "FinMind MCP server — Taiwan / global financial data for Claude, Gemini CLI, Cursor, Windsurf, and other MCP hosts"
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -35,8 +35,13 @@ finmind-mcp = "finmind_mcp.server:main"
 dev = ["pytest>=7", "pytest-asyncio>=0.23", "respx>=0.21"]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+# 版本來源 = git tag（透過 hatch-vcs / setuptools-scm）。
+# 推 tag vX.Y.Z → build 出來就是 X.Y.Z；非 tag commit 會是 dev 版號。
+[tool.hatch.version]
+source = "vcs"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/finmind_mcp"]
