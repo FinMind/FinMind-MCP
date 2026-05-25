@@ -14,10 +14,10 @@ name: Publish to PyPI
 #   2. GitHub repo → Settings → Environments → 新增名為 `pypi` 的 environment
 #      （名稱要跟上面 PyPI 設定一致；可另設保護規則，例如限定 reviewer 才能發版）
 #
-# 發版流程（tag 驅動）：
-#   - 先把 pyproject.toml 的 version bump 好（PyPI 版本號不可重複）
-#   - git tag vX.Y.Z（要跟 version 一致，下方 job 會檢查）
-#   - git push origin vX.Y.Z   ← 推 tag 就觸發本 workflow，自動 build → 上傳 PyPI
+# 發版流程（tag 驅動，版本號 = tag，不用改 pyproject.toml）：
+#   - git tag v0.1.0
+#   - git push origin v0.1.0   ← 推 tag 就觸發；hatch-vcs 從 tag 算出版本 0.1.0
+#                                 自動 build → 上傳 PyPI（PyPI 版本號不可重複，所以每次用新 tag）
 
 on:
   push:
@@ -31,22 +31,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # hatch-vcs 需要完整 history + tags 才能從 tag 算版本
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
-      - name: Verify pushed tag matches pyproject version
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          VERSION=$(grep -m1 '^version' pyproject.toml | sed -E 's/.*"(.*)".*/\1/')
-          TAG="${GITHUB_REF_NAME#v}"
-          echo "pyproject version: $VERSION   pushed tag: $TAG"
-          if [ "$VERSION" != "$TAG" ]; then
-            echo "::error::pushed tag ($TAG) does not match pyproject version ($VERSION). Bump the version or fix the tag."
-            exit 1
-          fi
-
-      - name: Build sdist + wheel
+      - name: Build sdist + wheel (version derived from the pushed tag)
         run: uv build
 
       - name: Check distribution metadata
