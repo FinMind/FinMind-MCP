@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+# 只跑離線檢查（pytest 全 mock、smoke 用假 token、build_instructions 純本地）。
+# regression/runner.py 會打 live API、需要 FINMIND_TOKEN，故不放 CI，由發版前人工跑。
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Unit tests (mocked, offline)
+        run: uv run pytest -q
+
+      - name: Stdio smoke test
+        run: uv run python smoke.py
+
+      - name: ChatGPT instructions build (must stay under the 8000-char Action limit)
+        run: uv run python chatgpt/build_instructions.py
