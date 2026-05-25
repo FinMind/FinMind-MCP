@@ -63,43 +63,38 @@ uv run pytest -v          # 31 tests
 uv run python smoke.py    # stdio integration check
 ```
 
-## 同步發佈
+## 發佈
 
-兩條 distribution（ChatGPT 與 MCP）共用一份 `knowledge/`，但發佈流程不同。
+兩條 distribution（MCP 與 ChatGPT）共用一份 `knowledge/`，但發佈方式不同。
 
-### Custom GPT（ChatGPT 線）
+### MCP server（Claude / Gemini / Cursor / Windsurf 線）— 推 tag 全自動
+
+改完 `knowledge/` 或程式碼後，**推一個版本 tag 就好**：GitHub Actions（[`.github/workflows/publish.yml`](.github/workflows/publish.yml)）會自動 `uv build` → `twine check` → 用 PyPI Trusted Publishing（OIDC）發 PyPI。版本號由 tag 經 `hatch-vcs` 決定，**不用改 `pyproject.toml`**。
+
+```bash
+uv run pytest -q          # 先確認測試過（CI 也會再跑一次）
+git tag v0.1.0
+git push origin v0.1.0    # → CI 自動 build + 發 PyPI
+```
+
+`knowledge/` 由 hatch `force-include` 打包進 wheel（`finmind_mcp/_knowledge/`），server runtime 直接讀、不用 compile；發版後用戶 `uvx finmind-mcp` / `pipx install finmind-mcp` 即抓到新版。
+
+> 首次需在 PyPI 設好 trusted publisher（project `finmind-mcp` / repo `FinMind/FinMind-MCP` / workflow `publish.yml` / env `pypi`）。
+> Remote endpoint `mcp.finmindtrade.com`（給 Claude.ai integrations）另走 service repo 的 docker compose + traefik，不在此 repo。
+
+### Custom GPT（ChatGPT 線）— 產物自動 build、建 GPT 手動
+
+GPT 的輸入由 `chatgpt/build_instructions.py` 編出來，CI 每次 push/PR 都會驗證它能 build 且 instructions 在 8000 字上限內。但 **OpenAI 沒有公開 API 可程式化建立／更新 Custom GPT**，最後一步要手動在 ChatGPT builder 完成：
 
 ```bash
 python chatgpt/build_instructions.py
-# 產出：
-# - chatgpt/instructions.txt      → 貼到 OpenAI Custom GPT instructions
-# - chatgpt/knowledge_bundle.md   → 上傳到 Custom GPT Knowledge files
-# - chatgpt/openapi.yaml          → 在 Custom GPT Action 匯入
+# 產出（gitignored，每次重生）：
+# - chatgpt/instructions.txt      → 貼到 Custom GPT 的 instructions
+# - chatgpt/knowledge_bundle.md   → 上傳到 Custom GPT 的 Knowledge files
+# - chatgpt/openapi.yaml          → 在 Custom GPT Action 匯入（Bearer auth）
 ```
 
-### MCP server（Claude / Gemini / Cursor / Windsurf 線）
-
-MCP server runtime 直接讀 `knowledge/`，**不用 compile** — `knowledge/` 改完後直接 bump version + 發版。`knowledge/` 會被 hatch 透過 `force-include` 打包進 wheel（搬到 `finmind_mcp/_knowledge/`），pip install 後 server 仍能讀到。
-
-```bash
-# 1. 改完 knowledge/，跑既有測試
-uv run pytest -q
-
-# 2. bump 版本（pyproject.toml [project].version）
-# 3. 建 sdist + wheel
-uv build
-# 產出 dist/finmind-mcp-<ver>.tar.gz、dist/finmind_mcp-<ver>-py3-none-any.whl
-# 兩者都已內含 knowledge/（wheel 路徑：finmind_mcp/_knowledge/*.md）
-
-# 4. 發 PyPI
-uv publish
-# 之後用戶用 `uvx finmind-mcp` 或 `pipx install finmind-mcp` 就會抓到新版
-
-# 5. 部署 remote endpoint mcp.finmindtrade.com（給 Claude.ai integrations）
-# 走既有 service repo 的 docker compose + traefik 路徑
-```
-
-各 host 安裝方式見 [install/*.md](install/)；同一份 server code 在所有 MCP host 共用。
+`knowledge/` 改版後重跑上面指令、把三個檔重貼／重傳到 GPT 即可。各 host 的 MCP 安裝方式見 [install/*.md](install/)。
 
 ## License
 
