@@ -9,7 +9,7 @@
   "mcpServers": {
     "finmind": {
       "command": "uvx",
-      "args": ["--from", "git+https://github.com/FinMind/FinMind-MCP", "finmind-mcp"],
+      "args": ["finmind-mcp"],
       "env": { "FINMIND_TOKEN": "${FINMIND_TOKEN}" }
     }
   }
