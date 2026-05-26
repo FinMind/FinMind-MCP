@@ -30,6 +30,7 @@ pipx install finmind-mcp
 | Cursor | [install/cursor.md](install/cursor.md) |
 | Windsurf | [install/windsurf.md](install/windsurf.md) |
 | Gemini CLI | [install/gemini-cli.md](install/gemini-cli.md) |
+| Codex CLI | [install/codex.md](install/codex.md) |
 
 ## 範例查詢
 
