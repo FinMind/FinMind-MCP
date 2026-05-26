@@ -26,7 +26,6 @@ pipx install finmind-mcp
 |---|---|
 | Claude Desktop | [install/claude-desktop.md](install/claude-desktop.md) |
 | Claude Code | [install/claude-code.md](install/claude-code.md) |
-| Claude.ai (Web) | [install/claude-ai.md](install/claude-ai.md) |
 | Cursor | [install/cursor.md](install/cursor.md) |
 | Windsurf | [install/windsurf.md](install/windsurf.md) |
 | Gemini CLI | [install/gemini-cli.md](install/gemini-cli.md) |
@@ -81,7 +80,6 @@ git push origin v0.1.0    # → CI 自動 build + 發 PyPI
 `knowledge/` 由 hatch `force-include` 打包進 wheel（`finmind_mcp/_knowledge/`），server runtime 直接讀、不用 compile；發版後用戶 `uvx finmind-mcp` / `pipx install finmind-mcp` 即抓到新版。
 
 > 首次需在 PyPI 設好 trusted publisher（project `finmind-mcp` / repo `FinMind/FinMind-MCP` / workflow `publish.yml` / env `pypi`）。
-> Remote endpoint `mcp.finmindtrade.com`（給 Claude.ai integrations）另走 service repo 的 docker compose + traefik，不在此 repo。
 
 ### Custom GPT（ChatGPT 線）— 產物自動 build、建 GPT 手動
 
