@@ -1,7 +1,7 @@
 # FinMind Token 取得與設定
 
 FinMind 所有 API 請求都需要 token；本文件說明如何取得，並在 ChatGPT Custom GPT
-與各種 MCP host（Claude Desktop / Claude Code / Cursor / Windsurf / Gemini CLI / Claude.ai）
+與各種 MCP host（Claude Desktop / Claude Code / Cursor / Windsurf / Gemini CLI）
 完成設定。
 
 ## 1. 取得 Token
@@ -79,20 +79,3 @@ uvx finmind-mcp --help        # 用 uv 即時跑，不長駐安裝
 驗證：重啟 host，輸入「列出 FinMind 可用的 dataset」，應出現 MCP 工具圖示並回覆
 dataset 清單；若得到 `AuthenticationError`，請檢查環境變數是否正確設定且未含
 多餘空白 / 引號。
-
-### Remote 模式（Claude.ai integrations）
-
-Remote 模式由官方 host `https://mcp.finmindtrade.com`（部署後啟用）提供，
-Claude.ai 透過 HTTP / SSE 連線，使用 MCP 標準的 OAuth flow 取得授權：
-
-1. Claude.ai → **Settings → Integrations → Add MCP server**
-2. URL 填 `https://mcp.finmindtrade.com`（部署上線後提供，目前 placeholder）
-3. 按 **Connect**，瀏覽器會跳到 finmindtrade.com OAuth 授權頁
-4. 用既有帳號登入並按「允許」
-5. Claude.ai 收到 access token 後完成註冊，之後直接在對話中觸發 FinMind 工具
-
-Remote 模式下用戶**不需要**手動貼 token；授權後 token 由 Claude.ai 端管理，
-撤銷請到 finmindtrade.com 會員中心 → 已授權應用 → 移除。
-
-> 注意：remote endpoint 仍在部署中，正式 URL 上線後本檔案會同步更新。
-> 在那之前，Claude.ai 用戶可改用 Claude Desktop 走 stdio 模式。

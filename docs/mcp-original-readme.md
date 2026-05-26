@@ -1,7 +1,7 @@
 # finmind-mcp
 
 Official FinMind MCP server. Exposes the FinMind v4 API to MCP-compatible
-AI tools (Claude Desktop / Code / Claude.ai, Gemini CLI, Cursor, Windsurf).
+AI tools (Claude Desktop / Code, Gemini CLI, Cursor, Windsurf, Codex).
 
 ## Tools
 
