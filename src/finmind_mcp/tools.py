@@ -3,7 +3,7 @@
 Four tools are exposed:
 
 - `query_dataset`             — generic /api/v4/data query
-- `list_datasets`             — /api/v4/datalist
+- `list_datasets`             — bundled dataset catalog (knowledge/datasets.md)
 - `get_stock_info`            — shorthand for TaiwanStockInfo
 - `query_trading_daily_report` — dedicated /api/v4/taiwan_stock_trading_daily_report
 
@@ -79,8 +79,8 @@ def tool_definitions() -> list[Tool]:
         Tool(
             name="list_datasets",
             description=(
-                "列出 FinMind 目前可用的所有 dataset 名稱（呼叫 /api/v4/datalist）。"
-                "回傳 markdown 條列。"
+                "列出 FinMind 支援的所有 dataset（讀取內建知識庫，不需連線）。"
+                "依分類回傳 dataset 名稱、會員層級與說明的 markdown 條列。"
             ),
             inputSchema={"type": "object", "properties": {}},
         ),
@@ -169,12 +169,22 @@ async def _query_dataset(client: FinMindClient, args: dict[str, Any]) -> str:
     return _format_markdown_table(rows, title=dataset)
 
 
-async def _list_datasets(client: FinMindClient, _args: dict[str, Any]) -> str:
-    names = await client.list_datasets()
-    if not names:
+async def _list_datasets(_client: FinMindClient, _args: dict[str, Any]) -> str:
+    # FinMind has no "list all datasets" endpoint; read the bundled catalog
+    # (datasets.md) — the same SSOT as the Custom GPT knowledge bundle.
+    catalog = knowledge.dataset_catalog()
+    if not catalog:
         return "目前沒有可用的 dataset。"
-    body = "\n".join(f"- `{name}`" for name in names)
-    return f"### FinMind 可用 dataset（共 {len(names)} 個）\n\n{body}"
+    lines = [f"### FinMind 可用 dataset（共 {len(catalog)} 個）"]
+    current_cat: Optional[str] = None
+    for rec in catalog:
+        if rec["category"] != current_cat:
+            current_cat = rec["category"]
+            lines.append(f"\n**{current_cat}**")
+        tier = f"（{rec['tier']}）" if rec["tier"] else ""
+        desc = f" — {rec['desc']}" if rec["desc"] else ""
+        lines.append(f"- `{rec['name']}`{tier}{desc}")
+    return "\n".join(lines)
 
 
 async def _get_stock_info(client: FinMindClient, args: dict[str, Any]) -> str:

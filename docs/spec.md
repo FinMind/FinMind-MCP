@@ -131,8 +131,9 @@ Custom GPT → markdown / Code Interpreter 畫圖
 | Path | Method | 用途 |
 |---|---|---|
 | `/api/v4/data` | GET | 通用資料查詢 |
-| `/api/v4/datalist` | GET | 列可用 dataset |
 | `/api/v4/taiwan_stock_trading_daily_report` | GET | dedicated endpoint dataset（如必要）|
+
+> FinMind 無「列出所有 dataset」的 API；dataset 目錄由內建 `knowledge/datasets.md` 提供。
 
 Auth：Bearer token（HTTP `Authorization: Bearer <token>` header）。
 
@@ -208,7 +209,7 @@ Claude.ai / Code / Desktop          Gemini CLI / Cursor / Windsurf
 | Tool | 描述 | 對應 endpoint |
 |---|---|---|
 | `query_dataset` | 通用查詢，必填 `dataset` / `data_id` / `start_date` | `/api/v4/data` |
-| `list_datasets` | 列可用 dataset 與層級 | `/api/v4/datalist` |
+| `list_datasets` | 列可用 dataset 與層級 | 內建 `knowledge/datasets.md`（無 API） |
 | `query_trading_daily_report` | dedicated dataset，必填 `data_id` + 單日 `date` | `/api/v4/taiwan_stock_trading_daily_report` |
 | `get_stock_info` | 股票代號 ↔ 中文名查詢 | `/api/v4/data?dataset=TaiwanStockInfo` |
 

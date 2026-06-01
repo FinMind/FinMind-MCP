@@ -8,7 +8,7 @@ AI tools (Claude Desktop / Code, Gemini CLI, Cursor, Windsurf, Codex).
 | Tool | Endpoint | Required args |
 | --- | --- | --- |
 | `query_dataset` | `/api/v4/data` | `dataset` |
-| `list_datasets` | `/api/v4/datalist` | — |
+| `list_datasets` | bundled `knowledge/datasets.md`（無 API） | — |
 | `get_stock_info` | `/api/v4/data?dataset=TaiwanStockInfo` | — |
 | `query_trading_daily_report` | `/api/v4/taiwan_stock_trading_daily_report` | `data_id`, `date` |
 

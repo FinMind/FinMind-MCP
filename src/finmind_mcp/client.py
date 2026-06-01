@@ -70,12 +70,6 @@ class FinMindClient:
             )
         return rows
 
-    async def list_datasets(self) -> list[str]:
-        """Call `/api/v4/datalist` and return the available dataset names."""
-        data = await self._get_json("/v4/datalist", {})
-        result = data.get("data", []) if isinstance(data, dict) else []
-        return list(result)
-
     async def query_trading_daily_report(
         self,
         data_id: str,

@@ -147,28 +147,19 @@ async def test_query_dataset_empty_raises_empty_error():
 
 @pytest.mark.asyncio
 @respx.mock
-async def test_list_datasets():
-    respx.get("https://api.finmindtrade.com/api/v4/datalist").mock(
-        return_value=httpx.Response(
-            200, json={"data": ["TaiwanStockPrice", "TaiwanStockInfo"]}
-        )
-    )
-    client = FinMindClient(token="t")
-    datasets = await client.list_datasets()
-    assert "TaiwanStockPrice" in datasets
-    assert "TaiwanStockInfo" in datasets
-
-
-@pytest.mark.asyncio
-@respx.mock
 async def test_token_from_env(monkeypatch):
     monkeypatch.setenv("FINMIND_TOKEN", "env-token")
-    respx.get("https://api.finmindtrade.com/api/v4/datalist").mock(
-        return_value=httpx.Response(200, json={"data": ["TaiwanStockPrice"]})
+    respx.get("https://api.finmindtrade.com/api/v4/data").mock(
+        return_value=httpx.Response(
+            200, json={"data": [{"stock_id": "2330", "close": 1000.0}]}
+        )
     )
     client = FinMindClient()  # no token arg
     assert client.token == "env-token"
-    await client.list_datasets()
+    rows = await client.query_dataset(
+        dataset="TaiwanStockPrice", data_id="2330", start_date="2026-05-10"
+    )
+    assert rows[0]["stock_id"] == "2330"
 
 
 def test_missing_token_raises_auth_error(monkeypatch):
