@@ -77,6 +77,45 @@ def read(uri: str) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def dataset_catalog() -> list[dict[str, str]]:
+    """Parse datasets.md into ordered {name, category, tier, desc} records.
+
+    FinMind exposes no API endpoint that enumerates all datasets — `/datalist`
+    only lists the data_id values *within* a single dataset. So datasets.md is
+    the single source of truth for "what datasets exist", shared with the
+    Custom GPT knowledge bundle. Returns [] when datasets.md is absent (e.g. CI
+    without the knowledge/ tree), letting callers fall back gracefully.
+    """
+    try:
+        content = read("finmind://datasets")
+    except FileNotFoundError:
+        return []
+    records: list[dict[str, str]] = []
+    category = ""
+    current: Optional[dict[str, str]] = None
+    for line in content.splitlines():
+        if line.startswith("## "):
+            # Section header (e.g. "台股 - 技術面"); "Tier 說明" legend has no
+            # dataset entries so it never produces a record.
+            category = line[3:].strip()
+            current = None
+        elif line.startswith("### "):
+            current = {
+                "name": line[4:].strip(),
+                "category": category,
+                "tier": "",
+                "desc": "",
+            }
+            records.append(current)
+        elif current is not None:
+            stripped = line.strip()
+            if stripped.startswith("- **Tier:**"):
+                current["tier"] = stripped.split("**Tier:**", 1)[1].strip()
+            elif stripped.startswith("- **描述:**"):
+                current["desc"] = stripped.split("**描述:**", 1)[1].strip()
+    return records
+
+
 def load_errors() -> str:
     """Return errors.md contents for tools.py to format user-facing messages."""
     try:

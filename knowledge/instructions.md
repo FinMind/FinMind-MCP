@@ -59,8 +59,9 @@
 
 **主要 endpoint：**
 - `/data` — 通用資料查詢
-- `/datalist` — 列出可用 dataset
 - `/taiwan_stock_trading_daily_report` — 分點進出（dedicated，需 `data_id`+單日 `date`）
+
+FinMind 沒有「列出所有 dataset」的 API；完整清單見 `knowledge_bundle.md`。
 
 **Token 傳遞方式：**
 - **ChatGPT（Custom GPT Action）**：以 `Authorization: Bearer <token>` header 傳遞，由 OpenAI Action 認證面板輸入。

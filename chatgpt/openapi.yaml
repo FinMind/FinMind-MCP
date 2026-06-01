@@ -71,22 +71,6 @@ paths:
           $ref: "#/components/responses/PaymentRequired"
         "5XX":
           $ref: "#/components/responses/UpstreamError"
-  /v4/datalist:
-    get:
-      operationId: listDatasets
-      summary: 列出可用 dataset
-      description: 回傳目前 token 可存取的 dataset 清單。
-      responses:
-        "200":
-          description: 查詢成功
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DatasetList"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "5XX":
-          $ref: "#/components/responses/UpstreamError"
 components:
   securitySchemes:
     bearerAuth:
@@ -108,15 +92,6 @@ components:
           items:
             type: object
             additionalProperties: true
-    DatasetList:
-      type: object
-      properties:
-        status:
-          type: integer
-        data:
-          type: array
-          items:
-            type: string
     Error:
       type: object
       properties:

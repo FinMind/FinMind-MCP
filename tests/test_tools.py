@@ -15,11 +15,10 @@ from finmind_mcp.errors import (
 class FakeClient:
     """Test double for FinMindClient — records calls and yields canned responses."""
 
-    def __init__(self, *, query_result=None, list_result=None, raise_exc=None,
+    def __init__(self, *, query_result=None, raise_exc=None,
                  trading_result=None):
         self.token = "fake-token"
         self.query_result = query_result if query_result is not None else []
-        self.list_result = list_result if list_result is not None else []
         self.trading_result = trading_result if trading_result is not None else []
         self.raise_exc = raise_exc
         self.calls: list[tuple] = []
@@ -29,12 +28,6 @@ class FakeClient:
         if self.raise_exc is not None:
             raise self.raise_exc
         return list(self.query_result)
-
-    async def list_datasets(self):
-        self.calls.append(("list_datasets",))
-        if self.raise_exc is not None:
-            raise self.raise_exc
-        return list(self.list_result)
 
     async def query_trading_daily_report(self, data_id, date):
         self.calls.append((
@@ -127,11 +120,17 @@ async def test_dispatch_query_dataset_truncates_at_500(install_fake_client):
 
 
 @pytest.mark.asyncio
-async def test_dispatch_list_datasets_markdown(install_fake_client):
-    install_fake_client(list_result=["TaiwanStockPrice", "TaiwanStockInfo"])
+async def test_dispatch_list_datasets_reads_knowledge_pack(install_fake_client):
+    # list_datasets must NOT hit the API (FinMind has no list-all endpoint);
+    # it reads the bundled datasets.md catalog instead.
+    client = install_fake_client()
     md = await tools.dispatch("list_datasets", {})
     assert "TaiwanStockPrice" in md
     assert "TaiwanStockInfo" in md
+    # 90 datasets shipped in knowledge/datasets.md
+    assert "共" in md and "個" in md
+    # No client call was made.
+    assert client.calls == []
 
 
 @pytest.mark.asyncio
