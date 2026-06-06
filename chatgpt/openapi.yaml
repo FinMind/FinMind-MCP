@@ -17,27 +17,13 @@ paths:
         - name: dataset
           in: query
           required: true
-          description: Dataset 名稱（見 enum）
+          description: >-
+            FinMind dataset 名稱（例如 TaiwanStockPrice、TaiwanStockMonthRevenue、
+            TaiwanFuturesDaily）。FinMind 支援約 90 個走本通用端點的 dataset；
+            完整清單與每個 dataset 的必填參數、會員層級，請參考已上傳的
+            knowledge bundle，並只使用其中列出的名稱，不要自行編造。
           schema:
             type: string
-            enum:
-              - TaiwanStockPrice
-              - TaiwanStockMonthRevenue
-              - TaiwanStockFinancialStatements
-              - TaiwanStockDividend
-              - TaiwanStockDividendResult
-              - TaiwanStockInstitutionalInvestorsBuySell
-              - TaiwanStockShareholding
-              - TaiwanStockMarginPurchaseShortSale
-              - TaiwanStockPER
-              - TaiwanFuturesDaily
-              - TaiwanOptionDaily
-              - TaiwanFuturesInstitutionalInvestors
-              - TaiwanExchangeRate
-              - InterestRate
-              - GoldPrice
-              - USStockPrice
-              - TaiwanStockInfo
         - name: data_id
           in: query
           required: false
