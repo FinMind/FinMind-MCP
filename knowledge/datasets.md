@@ -68,6 +68,7 @@ ChatGPT Custom GPT 與 MCP server 共用此文件作為 single source of truth�
 - **Optional:** （無）
 - **Key columns:** date, stock_id, deal_price, volume, Time, TickType
 - **描述:** 歷史逐筆成交（單日，含時間戳與委買委賣方向）
+- **Bulk download (Sponsor Pro):** `GET /api/v4/storage_objects?dataset=TaiwanStockPriceTick&date=YYYY-MM-DD` 一次取整日全市場 parquet（signed URL，免逐檔查詢）；SDK `taiwan_stock_tick(date='YYYY-MM-DD', use_object=True)`。此整日下載限 **Sponsor Pro**（與上方逐檔查詢的 Backer tier 不同）
 
 ### TaiwanStockPER
 - **Endpoint:** `/api/v4/data`
@@ -124,6 +125,7 @@ ChatGPT Custom GPT 與 MCP server 共用此文件作為 single source of truth�
 - **Optional:** （無）
 - **Key columns:** date, minute, stock_id, open, high, low, close, volume
 - **描述:** 分鐘 K 線（單日，1 分鐘粒度）
+- **Bulk download (Sponsor Pro):** `GET /api/v4/storage_objects?dataset=TaiwanStockKBar&date=YYYY-MM-DD` 一次取整日全市場 parquet（signed URL，免逐檔查詢）；SDK `taiwan_stock_kbar(date='YYYY-MM-DD', use_object=True)`。逐交易日提供、無歷史回補。此整日下載限 **Sponsor Pro**
 
 ### TaiwanStockWeekPrice
 - **Endpoint:** `/api/v4/data`
@@ -262,6 +264,7 @@ ChatGPT Custom GPT 與 MCP server 共用此文件作為 single source of truth�
 - **Optional:** （無）
 - **Key columns:** securities_trader, price, buy, sell, securities_trader_id, stock_id, date
 - **描述:** 分點進出（單日，按券商分點列出買賣）
+- **Bulk download (Sponsor Pro):** `GET /api/v4/storage_objects?dataset=TaiwanStockTradingDailyReport&date=YYYY-MM-DD` 一次取整日全市場分點 parquet（signed URL，免逐檔查詢）；SDK `taiwan_stock_trading_daily_report(date='YYYY-MM-DD', use_object=True)`。此整日下載限 **Sponsor Pro**
 
 ### TaiwanStockWarrantTradingDailyReport
 - **Endpoint:** `/api/v4/taiwan_stock_warrant_trading_daily_report`（dedicated）
@@ -434,14 +437,16 @@ ChatGPT Custom GPT 與 MCP server 共用此文件作為 single source of truth�
 - **Optional:** （無）
 - **Key columns:** contract_date, date, futures_id, price, volume
 - **描述:** 期貨逐筆交易明細
+- **Bulk download (Sponsor Pro):** `GET /api/v4/storage_objects?dataset=TaiwanFuturesTick&date=YYYY-MM-DD` 一次取整日全市場 parquet（signed URL，免逐檔查詢）；SDK `taiwan_futures_tick(date='YYYY-MM-DD', use_object=True)`。逐交易日提供、無歷史回補。此整日下載限 **Sponsor Pro**（與上方逐檔查詢的 Backer tier 不同）
 
-### TaiwanOptionTIck
+### TaiwanOptionTick
 - **Endpoint:** `/api/v4/data`
 - **Tier:** Backer
-- **Required:** `dataset=TaiwanOptionTIck`, `data_id` (選擇權代號), `start_date` (single day)
+- **Required:** `dataset=TaiwanOptionTick`, `data_id` (選擇權代號), `start_date` (single day)
 - **Optional:** （無）
 - **Key columns:** ExercisePrice, PutCall, contract_date, date, option_id, price, volume
-- **描述:** 選擇權逐筆交易明細（注意 dataset 名稱 TIck，T 大寫 I 大寫）
+- **描述:** 選擇權逐筆交易明細
+- **Bulk download (Sponsor Pro):** `GET /api/v4/storage_objects?dataset=TaiwanOptionTick&date=YYYY-MM-DD` 一次取整日全市場 parquet（signed URL，免逐檔查詢）；SDK `taiwan_option_tick(date='YYYY-MM-DD', use_object=True)`。逐交易日提供、無歷史回補。此整日下載限 **Sponsor Pro**（與上方逐檔查詢的 Backer tier 不同）
 
 ### TaiwanFuturesInstitutionalInvestors
 - **Endpoint:** `/api/v4/data`
