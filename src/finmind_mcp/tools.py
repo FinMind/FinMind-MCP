@@ -14,6 +14,10 @@ Each tool returns a markdown string. `FinMindError` subclasses raised by
 
 from __future__ import annotations
 
+import asyncio
+import os
+import tempfile
+from pathlib import Path
 from typing import Any, Optional
 
 from mcp.types import Tool
@@ -28,6 +32,7 @@ from .errors import (
     RateLimitError,
     UpstreamError,
 )
+from .jobs import SQLiteJobStore
 
 # Truncate row count for inline markdown rendering. Larger results should
 # be processed via the host's code interpreter.
@@ -42,8 +47,16 @@ def _make_client() -> FinMindClient:
     return FinMindClient()
 
 
+def _make_job_store() -> SQLiteJobStore:
+    """Factory hook for async handleId jobs."""
+    db_path = os.environ.get("FINMIND_MCP_JOB_DB")
+    if not db_path:
+        db_path = str(Path(tempfile.gettempdir()) / "finmind_mcp_jobs.sqlite3")
+    return SQLiteJobStore(db_path)
+
+
 def tool_definitions() -> list[Tool]:
-    """Return MCP Tool definitions for all four tools in stable order."""
+    """Return MCP Tool definitions in stable order."""
     return [
         Tool(
             name="query_dataset",
@@ -122,6 +135,57 @@ def tool_definitions() -> list[Tool]:
                 "required": ["data_id", "date"],
             },
         ),
+        Tool(
+            name="start_query_dataset_job",
+            description=(
+                "啟動較慢的通用 FinMind dataset 查詢，立即回傳 handle_id，避免 MCP "
+                "tool call 因外部 API 延遲而 timeout。之後用 check_query_dataset_job "
+                "輪詢結果。"
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "dataset": {
+                        "type": "string",
+                        "description": "FinMind dataset 名稱，例如 TaiwanStockPrice",
+                    },
+                    "data_id": {
+                        "type": "string",
+                        "description": "股票 / 期貨 / 選擇權代號（如 2330、TX、TXO）",
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "description": "查詢起始日 YYYY-MM-DD",
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "description": "查詢結束日 YYYY-MM-DD（可選）",
+                    },
+                    "original_query": {
+                        "type": "string",
+                        "description": "原始使用者問題，用於 polling 回覆時保留上下文。",
+                    },
+                },
+                "required": ["dataset"],
+            },
+        ),
+        Tool(
+            name="check_query_dataset_job",
+            description=(
+                "用 handle_id 查詢 start_query_dataset_job 的狀態。回覆會保留 original_query，"
+                "避免長時間查詢完成後遺失對話上下文。"
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "handle_id": {
+                        "type": "string",
+                        "description": "start_query_dataset_job 回傳的 handle_id",
+                    }
+                },
+                "required": ["handle_id"],
+            },
+        ),
     ]
 
 
@@ -139,14 +203,18 @@ async def dispatch(name: str, arguments: dict[str, Any]) -> str:
         "list_datasets": _list_datasets,
         "get_stock_info": _get_stock_info,
         "query_trading_daily_report": _query_trading_daily_report,
+        "start_query_dataset_job": _start_query_dataset_job,
+        "check_query_dataset_job": _check_query_dataset_job,
     }
     handler = handlers.get(name)
     if handler is None:
         raise ValueError(f"unknown tool: {name}")
-    try:
-        client = _make_client()
-    except AuthenticationError:
-        return _error_message(AuthenticationError("missing token"))
+    client: FinMindClient | None = None
+    if name not in {"list_datasets", "check_query_dataset_job"}:
+        try:
+            client = _make_client()
+        except AuthenticationError:
+            return _error_message(AuthenticationError("missing token"))
     try:
         return await handler(client, arguments or {})
     except FinMindError as exc:
@@ -208,6 +276,93 @@ async def _query_trading_daily_report(
         return "缺少必填參數 `date`。請指定查詢日期（YYYY-MM-DD，單日）。"
     rows = await client.query_trading_daily_report(data_id=data_id, date=date)
     return _format_markdown_table(rows, title="TradingDailyReport")
+
+
+async def _start_query_dataset_job(
+    client: FinMindClient, args: dict[str, Any]
+) -> str:
+    dataset = args.get("dataset")
+    if not dataset:
+        return "缺少必填參數 `dataset`。請指定要查詢的資料集名稱。"
+
+    job_args = {
+        "dataset": dataset,
+        "data_id": args.get("data_id"),
+        "start_date": args.get("start_date"),
+        "end_date": args.get("end_date"),
+    }
+    original_query = args.get("original_query") or _job_query_context(job_args)
+    record = _make_job_store().create(
+        tool_name="query_dataset",
+        arguments=job_args,
+        original_query=original_query,
+    )
+    asyncio.create_task(_run_query_dataset_job(record.handle_id, client, job_args))
+    return (
+        f"PROCESSING: Job started. handle_id: `{record.handle_id}`\n\n"
+        f"Use `check_query_dataset_job` with this handle_id to poll results.\n\n"
+        f"original_query: {original_query}"
+    )
+
+
+async def _run_query_dataset_job(
+    handle_id: str,
+    client: FinMindClient,
+    args: dict[str, Any],
+) -> None:
+    store = _make_job_store()
+    try:
+        rows = await client.query_dataset(
+            dataset=args["dataset"],
+            data_id=args.get("data_id"),
+            start_date=args.get("start_date"),
+            end_date=args.get("end_date"),
+        )
+        store.complete(handle_id, _format_markdown_table(rows, title=args["dataset"]))
+    except FinMindError as exc:
+        store.fail(handle_id, _error_message(exc))
+    except Exception as exc:  # Defensive guard: tools should not leak exceptions.
+        store.fail(handle_id, f"FinMind 查詢失敗：{exc}")
+
+
+async def _check_query_dataset_job(
+    _client: FinMindClient | None,
+    args: dict[str, Any],
+) -> str:
+    handle_id = args.get("handle_id")
+    if not handle_id:
+        return "缺少必填參數 `handle_id`。請提供 start_query_dataset_job 回傳的 handle_id。"
+
+    record = _make_job_store().get(handle_id)
+    if record is None:
+        return f"NOT_FOUND: Job `{handle_id}` not found."
+    if record.status == "completed":
+        return (
+            f"COMPLETED: Job `{handle_id}` completed.\n\n"
+            f"original_query: {record.original_query}\n\n"
+            f"{record.result or ''}"
+        )
+    if record.status == "failed":
+        return (
+            f"FAILED: Job `{handle_id}` failed.\n\n"
+            f"original_query: {record.original_query}\n\n"
+            f"{record.error or 'unknown error'}"
+        )
+    return (
+        f"PROCESSING: Job `{handle_id}` still running.\n\n"
+        f"original_query: {record.original_query}"
+    )
+
+
+def _job_query_context(args: dict[str, Any]) -> str:
+    parts = [str(args.get("dataset") or "dataset")]
+    if args.get("data_id"):
+        parts.append(str(args["data_id"]))
+    if args.get("start_date"):
+        parts.append(str(args["start_date"]))
+    if args.get("end_date"):
+        parts.append(str(args["end_date"]))
+    return " ".join(parts)
 
 
 # --- Formatting --------------------------------------------------------------
