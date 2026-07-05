@@ -37,7 +37,7 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Required:** `dataset=TaiwanStockInfoWithWarrantSummary`, `data_id`, `start_date`
 - **Optional:** `end_date`
 - **Key columns:** stock_id, date, close, target_stock_id, target_close, type, exercise_ratio, fulfillment_price
-- **描述:** 台股權證標的對照表（含履約價、行使比例）
+- **描述:** 台股權證標的對照表（含履約價、行使比例）；涵蓋上市 (TWSE) 與上櫃 (TPEX) 權證，可用母股代碼 `target_stock_id` 反查其對應權證（含已到期、代碼重用的歷史權證），上櫃對照歷史回溯至 2011-01-03
 
 ### TaiwanStockTradingDate
 - **Endpoint:** `/api/v4/data`
@@ -202,6 +202,14 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Optional:** `end_date`
 - **Key columns:** date, stock_id, buy, name, sell
 - **描述:** 個股三大法人買賣超
+
+### TaiwanStockInstitutionalInvestorsBuySellWide
+- **Endpoint:** `/api/v4/data`
+- **Tier:** Free(w/ data_id)
+- **Required:** `dataset=TaiwanStockInstitutionalInvestorsBuySellWide`, `data_id` (股票代號), `start_date`
+- **Optional:** `end_date`
+- **Key columns:** date, stock_id, Foreign_Investor_buy, Foreign_Investor_sell, Foreign_Dealer_Self_buy, Foreign_Dealer_Self_sell, Investment_Trust_buy, Investment_Trust_sell, Dealer_buy, Dealer_sell, Dealer_self_buy, Dealer_self_sell, Dealer_Hedging_buy, Dealer_Hedging_sell
+- **描述:** 個股三大法人買賣（寬表）；與 TaiwanStockInstitutionalInvestorsBuySell 同資料，改為每交易日一列、各法人別買賣攤平成獨立欄位（免自行轉置），欄位涵蓋所有歷史分類、尚未存在的年代為 0
 
 ### TaiwanStockTotalInstitutionalInvestors
 - **Endpoint:** `/api/v4/data`
@@ -538,6 +546,22 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Key columns:** date, contract_month, option_id, settlement_price
 - **描述:** 選擇權最後結算價
 
+### TaiwanFuturesSpreadTick
+- **Endpoint:** `/api/v4/data`
+- **Tier:** Sponsor
+- **Required:** `dataset=TaiwanFuturesSpreadTick`, `data_id` (期貨代號，如 `CAF`), `start_date` (single day)
+- **Optional:** （無）
+- **Key columns:** date, time, futures_id, contract_date, price, volume, near_price, far_price, spread_to_spread
+- **描述:** 期貨價差（近月/遠月）每筆成交；單次請求只提供一天資料，自 2026-04-27 起逐交易日累積（暫不含更早歷史回補）
+
+### TaiwanOptionVix
+- **Endpoint:** `/api/v4/data`
+- **Tier:** Backer
+- **Required:** `dataset=TaiwanOptionVix`, `start_date`
+- **Optional:** `end_date`
+- **Key columns:** date, time, vix
+- **描述:** 臺指選擇權波動率指數（VIX）；含日期、時間、波動率指數，資料區間 2026-03-01 ~ now
+
 ## 台股 - 即時資料
 
 > 此分類所有 dataset 都需要 **Sponsor** 方案。
@@ -609,6 +633,14 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Optional:** `end_date`
 - **Key columns:** cb_id, ConversionPrice, IssuanceAmount, OutstandingAmount, date
 - **描述:** 可轉債每日總覽（轉換價、發行 / 流通在外金額）
+
+### TaiwanStockConvertibleBondMonthlyAnalysis
+- **Endpoint:** `/api/v4/data`
+- **Tier:** Backer
+- **Required:** `dataset=TaiwanStockConvertibleBondMonthlyAnalysis`, `start_date`
+- **Optional:** `data_id` (可轉債代號), `end_date`
+- **Key columns:** date, cb_id, cb_name, cb_name_en, custody_balance, last_month_balance, change, change_percent, issued_units, custody_accounts, pledged_units
+- **描述:** 可轉換公司債月份分析表（每月保管餘額、上月餘額、增減、發行單位數、保管戶數、設質單位數）；資料區間 2026-05-01 ~ now
 
 ## 台股 - 其他
 
