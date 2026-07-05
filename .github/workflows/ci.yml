@@ -37,3 +37,26 @@ jobs:
 
       - name: ChatGPT instructions build (must stay under the 8000-char Action limit)
         run: uv run python chatgpt/build_instructions.py
+
+  doc-sync:
+    # Fail the build when a dataset documented in FinMind-Doc is missing from
+    # knowledge/datasets.md (the catalog silently drifting behind the docs is
+    # what let several datasets go unlisted for months). Only needs stdlib, so
+    # no uv/deps — just checkout both public repos and diff.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout FinMind-MCP
+        uses: actions/checkout@v4
+
+      - name: Checkout FinMind-Doc (public)
+        uses: actions/checkout@v4
+        with:
+          repository: FinMind/FinMind-Doc
+          path: FinMind-Doc
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Catalog vs FinMind-Doc sync check
+        run: python scripts/check_doc_sync.py --doc ./FinMind-Doc

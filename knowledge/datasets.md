@@ -284,10 +284,10 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Key columns:** securities_trader, price, buy, sell, securities_trader_id, stock_id, date
 - **描述:** 權證分點進出（單日）
 
-### TaiwanstockGovernmentBankBuySell
+### TaiwanStockGovernmentBankBuySell
 - **Endpoint:** `/api/v4/data`
 - **Tier:** Sponsor
-- **Required:** `dataset=TaiwanstockGovernmentBankBuySell`, `data_id` (股票代號), `start_date`
+- **Required:** `dataset=TaiwanStockGovernmentBankBuySell`, `data_id` (股票代號), `start_date`
 - **Optional:** `end_date`
 - **Key columns:** date, stock_id, buy_amount, sell_amount, buy, sell, bank_name
 - **描述:** 八大行庫買賣
@@ -315,6 +315,38 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Optional:** `end_date`
 - **Key columns:** date, stock_id, stock_name, disposition_cnt, condition, measure, period_start, period_end
 - **描述:** 處置有價證券（含處置原因與期間）
+
+### TaiwanStockBlockTrade
+- **Endpoint:** `/api/v4/data`
+- **Tier:** Sponsor
+- **Required:** `dataset=TaiwanStockBlockTrade`, `data_id` (股票代號), `start_date`
+- **Optional:** `end_date`
+- **Key columns:** date, stock_id, trade_type, price, volume, trading_money
+- **描述:** 鉅額交易日成交資訊（逐筆，含交易別、成交價量金額）；資料區間 2005-04-04 ~ now
+
+### TaiwanStockBlockTradingDailyReport
+- **Endpoint:** `/api/v4/data`
+- **Tier:** Sponsor
+- **Required:** `dataset=TaiwanStockBlockTradingDailyReport`, `start_date`
+- **Optional:** `data_id` (股票代號), `end_date`
+- **Key columns:** date, stock_id, securities_trader, securities_trader_id, price, buy, sell, trade_type
+- **描述:** 鉅額交易買賣日報表（含券商別）；資料區間 2026-04-28 ~ now
+
+### TaiwanStockDayTradingBorrowingFeeRate
+- **Endpoint:** `/api/v4/data`
+- **Tier:** Backer
+- **Required:** `dataset=TaiwanStockDayTradingBorrowingFeeRate`, `start_date`
+- **Optional:** `data_id` (股票代號), `end_date`
+- **Key columns:** date, stock_id, stock_name, InvestorBorrowedShares, InvestorBorrowingFeeRate
+- **描述:** 現股當日沖銷券差借券費率（借券股數、借券費率）；資料區間 2015-06-01 ~ now
+
+### TaiwanStockLoanCollateralBalance
+- **Endpoint:** `/api/v4/data`
+- **Tier:** Sponsor
+- **Required:** `dataset=TaiwanStockLoanCollateralBalance`, `data_id` (股票代號), `start_date`
+- **Optional:** `end_date`
+- **Key columns:** date, stock_id, market, MarginCurrentDayBalance, SecuritiesFirmLoanCurrentDayBalance, UnrestrictedLoanCurrentDayBalance（融資/證券商借貸/不限用途借貸各前日餘額、買進、賣出、現償、更換、今日餘額、次日限額，共 37 欄）
+- **描述:** 借貸款項擔保品餘額表（集中市場 / 櫃買中心，融資與證券商借貸款項各項餘額）；資料區間 2006-10-02 ~ now
 
 ## 台股 - 基本面
 
