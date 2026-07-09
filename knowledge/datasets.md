@@ -274,6 +274,7 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Optional:** （無）
 - **Key columns:** securities_trader, price, buy, sell, securities_trader_id, stock_id, date
 - **描述:** 分點進出（單日，按券商分點列出買賣）
+- **興櫃自營商 `price=0`（正常，非缺失）:** 興櫃股票（`TaiwanStockInfo` type=`emerging`）的推薦證券商兼造市（自營商，`securities_trader_id` 結尾為 `T`），雙向報價橫跨多個價位、無單一代表成交均價，故該分點列 `price` 顯示為 `0`（`buy`／`sell` 股數仍為正確值）。此為興櫃市場結構特性，非資料缺失或錯誤；同一檔興櫃的一般券商分點、以及上市櫃各分點（含自營商）皆有正常成交價。若地端回測會除以 `price`，可過濾 `price>0` 或排除結尾 `T` 的分點列。
 - **Bulk download (Sponsor Pro):** `GET /api/v4/storage_objects?dataset=TaiwanStockTradingDailyReport&date=YYYY-MM-DD` 一次取整日全市場分點 parquet（signed URL，免逐檔查詢）；SDK `taiwan_stock_trading_daily_report(date='YYYY-MM-DD', use_object=True)`。此整日下載限 **Sponsor Pro**
 
 ### TaiwanStockWarrantTradingDailyReport
