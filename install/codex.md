@@ -11,6 +11,8 @@
 pipx install finmind-mcp
 ```
 
+> **Windows 使用者**：`uv`/`pipx` 的安裝方式、token 設定與常見 PATH 問題，請先看 [Windows 安裝指引](windows.md)。
+
 ## 設定
 
 一行指令（推薦）：

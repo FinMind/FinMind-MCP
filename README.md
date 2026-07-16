@@ -31,6 +31,8 @@ pipx install finmind-mcp
 | Gemini CLI | [install/gemini-cli.md](install/gemini-cli.md) |
 | Codex CLI | [install/codex.md](install/codex.md) |
 
+> **Windows 使用者**：請先看 [install/windows.md](install/windows.md) —— 含 `uv`/`pipx` 安裝、PowerShell 環境變數、各 host 設定檔的 Windows 路徑，以及「host 找不到 `finmind-mcp` 指令」等常見問題。
+
 ## 範例查詢
 
 - 「台積電最近一個月股價」
