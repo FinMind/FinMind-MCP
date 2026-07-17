@@ -1,4 +1,4 @@
-本文件列出 FinMind 支援的 dataset，涵蓋台股技術面 / 籌碼面 / 基本面 / 衍生性商品 / 即時資料 / 可轉債 / 國際市場 / 全球總經，共約 90 個。
+本文件列出 FinMind 支援的 dataset，涵蓋台股技術面 / 籌碼面 / 基本面 / 衍生性商品 / 即時資料 / 可轉債 / 國際市場 / 全球總經，共約 100 個。
 ChatGPT Custom GPT 與 MCP server 共用此文件作為 single source of truth。
 所有參數命名以 FinMind v4 API（`/api/v4/data`，少數 dedicated endpoint 另列）為準；日期格式一律 `YYYY-MM-DD`。
 
@@ -347,6 +347,30 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Optional:** `end_date`
 - **Key columns:** date, stock_id, market, MarginCurrentDayBalance, SecuritiesFirmLoanCurrentDayBalance, UnrestrictedLoanCurrentDayBalance（融資/證券商借貸/不限用途借貸各前日餘額、買進、賣出、現償、更換、今日餘額、次日限額，共 37 欄）
 - **描述:** 借貸款項擔保品餘額表（集中市場 / 櫃買中心，融資與證券商借貸款項各項餘額）；資料區間 2006-10-02 ~ now
+
+### TaiwanStockActiveETFInfo
+- **Endpoint:** `/api/v4/data`
+- **Tier:** Free
+- **Required:** `dataset=TaiwanStockActiveETFInfo`
+- **Optional:** （無，回傳完整清單）
+- **Key columns:** date, stock_id, stock_name, category, type
+- **描述:** 台灣掛牌主動式ETF清單（上市 + 上櫃）；category=ETF 分類（domestic 國內投資 / foreign 跨國投資）、type=市場別（twse / tpex）
+
+### TaiwanStockActiveETFHolding
+- **Endpoint:** `/api/v4/data`
+- **Tier:** Sponsor
+- **Required:** `dataset=TaiwanStockActiveETFHolding`, `start_date`
+- **Optional:** `data_id` (ETF 代號，如 00980A；省略則查當日全部主動式ETF), `end_date`
+- **Key columns:** date, stock_id (ETF 代號), component_stock_id (成份標的代號), component_stock_name, asset_type, shares, weight, market_value, currency
+- **描述:** 主動式ETF每日持股明細；資料區間 2025-05-05 ~ now（各檔起始日依掛牌日不同）。shares 為整數；空方部位（賣出選擇權 / 期貨）與負債科目的 shares / market_value 可為負；market_value 僅部分 ETF 揭露、未揭露為 0；asset_type 可篩選 stock / bond / futures / option / cash / etf / repo / other
+
+### TaiwanStockActiveETFHoldingChange
+- **Endpoint:** `/api/v4/data`
+- **Tier:** Sponsor
+- **Required:** `dataset=TaiwanStockActiveETFHoldingChange`, `start_date`
+- **Optional:** `data_id` (ETF 代號，如 00980A；省略則查當日全部主動式ETF), `end_date`
+- **Key columns:** date, stock_id (ETF 代號), component_stock_id (成份標的代號), component_stock_name, buy, sell
+- **描述:** 主動式ETF每日持股異動（買賣）；由持股明細相鄰交易日差分而得，資料區間 2025-05-05 ~ now。buy / sell 為整數股數、每列僅其一非 0；申購 / 贖回造成的等比例增減亦計入，非經理人主動買賣純額
 
 ## 台股 - 基本面
 
