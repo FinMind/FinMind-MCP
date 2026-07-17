@@ -12,6 +12,8 @@ pipx install finmind-mcp      # 推薦：長駐安裝
 uvx finmind-mcp --help        # 用 uv 即時跑，不安裝
 ```
 
+> **Windows 使用者**：`pipx`/`uvx` 的安裝方式、token 設定與常見 PATH 問題，請先看 [Windows 安裝指引](windows.md)。
+
 ## 設定
 
 依您的作業系統，編輯對應的設定檔：

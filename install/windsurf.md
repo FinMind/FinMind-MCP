@@ -12,6 +12,8 @@ pipx install finmind-mcp      # 推薦：長駐安裝
 uvx finmind-mcp --help        # 用 uv 即時跑，不安裝
 ```
 
+> **Windows 使用者**：`pipx`/`uvx` 的安裝方式、token 設定與常見 PATH 問題，請先看 [Windows 安裝指引](windows.md)。
+
 ## 設定
 
 編輯設定檔 `~/.codeium/windsurf/mcp_config.json`（檔案不存在請自行建立），加入以下內容（若已有其他 server，合併到同一個 `mcpServers` 物件即可）：
