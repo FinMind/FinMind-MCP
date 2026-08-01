@@ -53,7 +53,7 @@ def tool_definitions() -> list[Tool]:
                 " start_date（YYYY-MM-DD），回傳 markdown 表格。超過 500 列會截斷"
                 "並標註總列數。"
             ),
-            inputSchema={
+            input_schema={
                 "type": "object",
                 "properties": {
                     "dataset": {
@@ -82,7 +82,7 @@ def tool_definitions() -> list[Tool]:
                 "列出 FinMind 支援的所有 dataset（讀取內建知識庫，不需連線）。"
                 "依分類回傳 dataset 名稱、會員層級與說明的 markdown 條列。"
             ),
-            inputSchema={"type": "object", "properties": {}},
+            input_schema={"type": "object", "properties": {}},
         ),
         Tool(
             name="get_stock_info",
@@ -90,7 +90,7 @@ def tool_definitions() -> list[Tool]:
                 "查詢台股代號 / 中文名 / 產業別總覽（呼叫 TaiwanStockInfo）。"
                 "可選 stock_id 指定單一標的；未提供時回傳全市場清單（會截斷）。"
             ),
-            inputSchema={
+            input_schema={
                 "type": "object",
                 "properties": {
                     "stock_id": {
@@ -107,7 +107,7 @@ def tool_definitions() -> list[Tool]:
                 "此 dataset 走專屬 endpoint 不在 /api/v4/data 通用路徑：必填股票代號 data_id"
                 "與單一日期 date（非區間）。需要 Sponsor 等級。"
             ),
-            inputSchema={
+            input_schema={
                 "type": "object",
                 "properties": {
                     "data_id": {

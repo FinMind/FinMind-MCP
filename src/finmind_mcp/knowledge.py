@@ -58,7 +58,7 @@ def resource_definitions() -> list[Resource]:
                     uri=f"finmind://{suffix}",
                     name=suffix,
                     description=f"FinMind knowledge pack: {filename}",
-                    mimeType="text/markdown",
+                    mime_type="text/markdown",
                 )
             )
     return resources
