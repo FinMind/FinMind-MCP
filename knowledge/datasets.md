@@ -373,6 +373,14 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Key columns:** date, stock_id (ETF 代號), component_stock_id (成份標的代號), component_stock_name, buy, sell
 - **描述:** 主動式ETF每日持股異動（買賣）；由持股明細相鄰交易日差分而得，資料區間 2025-05-05 ~ now。buy / sell 為整數股數、每列僅其一非 0；申購 / 贖回造成的等比例增減亦計入，非經理人主動買賣純額
 
+### TaiwanStockIndustryChainMoneyFlow
+- **Endpoint:** `/api/v4/data`
+- **Tier:** Sponsor
+- **Required:** `dataset=TaiwanStockIndustryChainMoneyFlow`, `start_date` (single day)
+- **Optional:** （無，回傳當日全部產業鏈）
+- **Key columns:** date, industry, sub_industry, stock_count, trading_volume, trading_money, trading_money_pct
+- **描述:** 台股產業鏈資金流向；依 TaiwanStockIndustryChain 的 industry / sub_industry 彙總每日個股成交，資料區間 1992-01-04 ~ now。單次只提供一天（帶了與 start_date 不同的 end_date 會回錯誤）；sub_industry 為空字串的列是該產業鏈總計（成分股不重複計算，不等於子產業列加總）；trading_money_pct 分母為當日全市場個股成交金額（排除 ETF / ETN / 受益證券 / 存託憑證），一股可屬多條產業鏈故各產業鏈佔比加總會超過 100%
+
 ## 台股 - 基本面
 
 ### TaiwanStockFinancialStatements
@@ -619,6 +627,22 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Key columns:** date, time, vix
 - **描述:** 臺指選擇權波動率指數（VIX）；含日期、時間、波動率指數，資料區間 2026-03-01 ~ now
 
+### TaiwanAssetSwapFixedIncomeDaily
+- **Endpoint:** `/api/v4/data`
+- **Tier:** Backer
+- **Required:** `dataset=TaiwanAssetSwapFixedIncomeDaily`, `start_date`
+- **Optional:** `data_id` (可轉債代號，如 `17172`；省略則查當日全部標的), `end_date`
+- **Key columns:** date, stock_id, stock_name, notional_amount, number_of_transactions, rate_lowest, rate_highest, rate_average, contract_term_years
+- **描述:** 資產交換（AS）固定收益日成交資訊；每日名目本金、成交筆數與最低 / 最高 / 平均利率、合約期間（年），資料區間 2026-06-01 ~ now
+
+### TaiwanAssetSwapOptionDaily
+- **Endpoint:** `/api/v4/data`
+- **Tier:** Backer
+- **Required:** `dataset=TaiwanAssetSwapOptionDaily`, `start_date`
+- **Optional:** `data_id` (可轉債代號，如 `17172`；省略則查當日全部標的), `end_date`
+- **Key columns:** date, stock_id, stock_name, notional_amount, number_of_transactions, premium_lowest, premium_highest, premium_average, contract_term_years
+- **描述:** 資產交換選擇權（ASO）日成交資訊；每日名目本金、成交筆數與最低 / 最高 / 平均權利金、合約期間（年），資料區間 2026-06-01 ~ now
+
 ## 台股 - 即時資料
 
 > 此分類所有 dataset 都需要 **Sponsor** 方案。
@@ -698,6 +722,14 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Optional:** `data_id` (可轉債代號), `end_date`
 - **Key columns:** date, cb_id, cb_name, cb_name_en, custody_balance, last_month_balance, change, change_percent, issued_units, custody_accounts, pledged_units
 - **描述:** 可轉換公司債月份分析表（每月保管餘額、上月餘額、增減、發行單位數、保管戶數、設質單位數）；資料區間 2026-05-01 ~ now
+
+### TaiwanStockConvertibleBondPutProvision
+- **Endpoint:** `/api/v4/data`
+- **Tier:** Backer
+- **Required:** `dataset=TaiwanStockConvertibleBondPutProvision`, `start_date`
+- **Optional:** `data_id` (可轉債代號；省略則回傳區間內所有可轉債), `end_date`
+- **Key columns:** date (賣回基準日), cb_id, cb_name, PutPrice, PutYieldRate
+- **描述:** 可轉債賣回權時程（賣回基準日、賣回金額、賣回收益率）；資料區間 2011-06-22 ~ now，含未來已公告場次（通常提前約一年公告），end_date 可設未來日期。與 TaiwanStockConvertibleBondDailyOverview 的賣回欄位（僅賣回程序公告期間有值）互補
 
 ## 台股 - 其他
 
