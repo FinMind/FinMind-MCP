@@ -1,4 +1,4 @@
-本文件列出 FinMind 支援的 dataset，涵蓋台股技術面 / 籌碼面 / 基本面 / 衍生性商品 / 即時資料 / 可轉債 / 國際市場 / 全球總經，共約 100 個。
+本文件列出 FinMind 支援的 dataset，涵蓋台股技術面 / 籌碼面 / 基本面 / 衍生性商品 / 即時資料 / 可轉債 / 國際市場 / 全球總經，共約 106 個。
 ChatGPT Custom GPT 與 MCP server 共用此文件作為 single source of truth。
 所有參數命名以 FinMind v4 API（`/api/v4/data`，少數 dedicated endpoint 另列）為準；日期格式一律 `YYYY-MM-DD`。
 
@@ -70,7 +70,7 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Optional:** （無）
 - **Key columns:** date, stock_id, deal_price, volume, Time, TickType
 - **描述:** 歷史逐筆成交（單日，含時間戳與委買委賣方向）
-- **Bulk download (Sponsor Pro):** `GET /api/v4/storage_objects?dataset=TaiwanStockPriceTick&date=YYYY-MM-DD` 一次取整日全市場 parquet（signed URL，免逐檔查詢）；SDK `taiwan_stock_tick(date='YYYY-MM-DD', use_object=True)`。此整日下載限 **Sponsor Pro**（與上方逐檔查詢的 Backer tier 不同）
+- **Bulk download (Sponsor Pro):** `GET /api/v4/storage_objects?dataset=TaiwanStockPriceTick&date=YYYY-MM-DD` 一次取整日全市場 parquet（signed URL，免逐檔查詢）；SDK `taiwan_stock_tick(date='YYYY-MM-DD', use_object=True)`。**歷史整日檔案皆可下載**，最早 2018-12-07（2018-12-06 以前來源本身無逐筆資料）。此整日下載限 **Sponsor Pro**（與上方逐檔查詢的 Backer tier 不同）
 
 ### TaiwanStockPER
 - **Endpoint:** `/api/v4/data`
@@ -126,8 +126,10 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Required:** `dataset=TaiwanStockKBar`, `data_id` (股票代號), `start_date` (single day)
 - **Optional:** （無）
 - **Key columns:** date, minute, stock_id, open, high, low, close, volume
-- **描述:** 分鐘 K 線（單日，1 分鐘粒度）
-- **Bulk download (Sponsor Pro):** `GET /api/v4/storage_objects?dataset=TaiwanStockKBar&date=YYYY-MM-DD` 一次取整日全市場 parquet（signed URL，免逐檔查詢）；SDK `taiwan_stock_kbar(date='YYYY-MM-DD', use_object=True)`。逐交易日提供、無歷史回補。此整日下載限 **Sponsor Pro**
+- **描述:** 分鐘 K 線（單日，1 分鐘粒度）。個股資料區間 2019-01-01 ~ now（缺 2019-02-20）
+- **加權指數分 K:** `data_id="TAIEX"` 可取得臺灣加權股價指數的分 K，資料區間 **2005-01-03 ~ now**（比個股更長）；每個交易日 271 筆、涵蓋 09:00:00 ~ 13:30:00 每分鐘一筆，補行交易的星期六同樣有資料。指數本身沒有成交量，`volume` 固定為 0，`open` / `high` / `low` / `close` 為該分鐘內的指數值
+- **volume 單位:** 沿用各市場原始交易單位——上市 / 上櫃個股為「張」（1 張 = 1,000 股）、興櫃個股為「股」
+- **Bulk download (Sponsor Pro):** `GET /api/v4/storage_objects?dataset=TaiwanStockKBar&date=YYYY-MM-DD` 一次取整日全市場 parquet（signed URL，免逐檔查詢）；SDK `taiwan_stock_kbar(date='YYYY-MM-DD', use_object=True)`。**歷史整日檔案皆可下載**，最早 2019-01-02。此整日下載限 **Sponsor Pro**
 
 ### TaiwanStockWeekPrice
 - **Endpoint:** `/api/v4/data`
@@ -300,6 +302,15 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Optional:** `end_date`
 - **Key columns:** date, TotalExchangeMarginMaintenance
 - **描述:** 大盤融資維持率
+
+### TaiwanStockMarginMaintenance
+- **Endpoint:** `/api/v4/data`
+- **Tier:** Sponsor
+- **Required:** `dataset=TaiwanStockMarginMaintenance`, `start_date`
+- **Optional:** `data_id` (股票代號，如 `2330`；省略只帶 `start_date` 即可取得該日全市場個股), `end_date`
+- **Key columns:** date, stock_id, margin_balance, margin_cost, margin_ratio, margin_maintenance
+- **描述:** 個股每日融資維持率（%）、融資成本線 `margin_cost`（融資部位的移動加權平均成本）、融資餘額 `margin_balance`（張）與計算採用的融資成數 `margin_ratio`。資料區間 2001-01-05 ~ now（上櫃自 2007-01-04 起）；涵蓋上市 / 上櫃所有有融資餘額的標的（含 ETF / ETN / 受益證券 / 存託憑證），興櫃無信用交易不在涵蓋範圍；當日融資餘額為 0 或當日無成交（停牌 / 處置無量）的標的不輸出該日資料
+- **注意:** 本資料集為**估算指標**，無官方真值。公開資訊只揭露個股融資餘額「張數」、未揭露個股層級的融資金額，成本線與維持率皆由歷史融資買賣逐日推估，與其他服務的數字不會一致，建議作為觀察籌碼壓力的**相對指標**。`margin_ratio` 一律採法定最高融資比率（上市六成；上櫃 2014-11-10 起六成、之前五成），個別警示股 / 處置股的實際成數可能較低
 
 ### TaiwanStockTradingDailyReportSecIdAgg
 - **Endpoint:** `/api/v4/taiwan_stock_trading_daily_report_secid_agg`（dedicated）
@@ -512,7 +523,7 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Optional:** （無）
 - **Key columns:** contract_date, date, futures_id, price, volume
 - **描述:** 期貨逐筆交易明細
-- **Bulk download (Sponsor Pro):** `GET /api/v4/storage_objects?dataset=TaiwanFuturesTick&date=YYYY-MM-DD` 一次取整日全市場 parquet（signed URL，免逐檔查詢）；SDK `taiwan_futures_tick(date='YYYY-MM-DD', use_object=True)`。逐交易日提供、無歷史回補。此整日下載限 **Sponsor Pro**（與上方逐檔查詢的 Backer tier 不同）
+- **Bulk download (Sponsor Pro):** `GET /api/v4/storage_objects?dataset=TaiwanFuturesTick&date=YYYY-MM-DD` 一次取整日全市場 parquet（signed URL，免逐檔查詢）；SDK `taiwan_futures_tick(date='YYYY-MM-DD', use_object=True)`。**歷史整日檔案皆可下載**，最早 2011-01-03（與逐檔查詢的最早日相同）。此整日下載限 **Sponsor Pro**（與上方逐檔查詢的 Backer tier 不同）
 
 ### TaiwanOptionTick
 - **Endpoint:** `/api/v4/data`
@@ -521,7 +532,7 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Optional:** （無）
 - **Key columns:** ExercisePrice, PutCall, contract_date, date, option_id, price, volume
 - **描述:** 選擇權逐筆交易明細
-- **Bulk download (Sponsor Pro):** `GET /api/v4/storage_objects?dataset=TaiwanOptionTick&date=YYYY-MM-DD` 一次取整日全市場 parquet（signed URL，免逐檔查詢）；SDK `taiwan_option_tick(date='YYYY-MM-DD', use_object=True)`。逐交易日提供、無歷史回補。此整日下載限 **Sponsor Pro**（與上方逐檔查詢的 Backer tier 不同）
+- **Bulk download (Sponsor Pro):** `GET /api/v4/storage_objects?dataset=TaiwanOptionTick&date=YYYY-MM-DD` 一次取整日全市場 parquet（signed URL，免逐檔查詢）；SDK `taiwan_option_tick(date='YYYY-MM-DD', use_object=True)`。**歷史整日檔案皆可下載**，最早 2011-01-03（2019-01-16 ~ 2019-06-30 資料不完整）。此整日下載限 **Sponsor Pro**（與上方逐檔查詢的 Backer tier 不同）
 
 ### TaiwanFuturesInstitutionalInvestors
 - **Endpoint:** `/api/v4/data`
@@ -648,10 +659,10 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 > 此分類所有 dataset 都需要 **Sponsor** 方案。
 
 ### taiwan_stock_tick_snapshot
-- **Endpoint:** `/api/v4/data`
+- **Endpoint:** `/api/v4/taiwan_stock_tick_snapshot`（dedicated；**不在** `/api/v4/data` 的 `dataset` enum 內，帶 `dataset=` 走通用路徑會被拒）
 - **Tier:** Sponsor
-- **Required:** `dataset=taiwan_stock_tick_snapshot`, `data_id` (股票代號)
-- **Optional:** （無）
+- **Required:** `data_id` (股票代號；亦支援 3 碼指數代號如 `001` 加權指數)
+- **Optional:** `data_id` 可帶多個一次取得，或留空 `data_id=""` 一次取全部
 - **Key columns:** close, high, low, open, volume, total_volume, change_price, change_rate, date, stock_id
 - **描述:** 台股即時報價（快照）
 
@@ -664,20 +675,22 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **描述:** 期貨選擇權即時總覽
 
 ### taiwan_futures_snapshot
-- **Endpoint:** `/api/v4/data`
+- **Endpoint:** `/api/v4/taiwan_futures_snapshot`（dedicated；**不在** `/api/v4/data` 的 `dataset` enum 內）
 - **Tier:** Sponsor
-- **Required:** `dataset=taiwan_futures_snapshot`, `data_id` (期貨代號)
-- **Optional:** （無）
+- **Required:** `data_id` (期貨代號，如 `TX`)
+- **Optional:** 留空 `data_id=""` 一次取全部
 - **Key columns:** open, high, low, close, volume, total_volume, change_price, change_rate, date, futures_id
 - **描述:** 期貨即時報價（快照）
 
 ### taiwan_options_snapshot
-- **Endpoint:** `/api/v4/data`
+- **Endpoint:** `/api/v4/taiwan_options_snapshot`（dedicated；**不在** `/api/v4/data` 的 `dataset` enum 內）
 - **Tier:** Sponsor
-- **Required:** `dataset=taiwan_options_snapshot`, `data_id` (選擇權代號)
-- **Optional:** （無）
+- **Required:** `data_id` (選擇權契約系列代碼)
+- **Optional:** 留空 `data_id=""` 一次取全部
 - **Key columns:** open, high, low, close, volume, total_volume, change_price, change_rate, date, options_id
-- **描述:** 選擇權即時報價（快照）
+- **描述:** 臺指選擇權即時報價（快照，約 30 秒更新一次）
+- **契約系列 `data_id`:** `TXO` 月選；`TX1` ~ `TX5` 週選（當月第 1 ~ 5 個**星期三**到期）；`TXU` `TXV` `TXX` `TXY` `TXZ` 週選（當月第 1 ~ 5 個**星期五**到期）。部分代碼在特定月份查無資料屬正常（契約尚未掛牌，或該月不存在該週次，例如某月只有 4 個星期五）
+- **注意:** 若某契約當日尚無成交，回傳的是該契約**最後一次有成交**的價量；要判斷是否為當日即時報價請以回傳的 `date` 欄位為準
 
 ## 台股 - 可轉債
 
