@@ -63,8 +63,8 @@ def test_tool_definitions_returns_four_tools():
     ]
     for d in defs:
         assert d.description
-        assert d.inputSchema is not None
-        assert d.inputSchema.get("type") == "object"
+        assert d.input_schema is not None
+        assert d.input_schema.get("type") == "object"
 
 
 @pytest.mark.asyncio
