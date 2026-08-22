@@ -1,5 +1,7 @@
 """Tests for MCP tool implementations + markdown formatting + error mapping."""
 
+import asyncio
+
 import pytest
 
 from finmind_mcp import tools
@@ -52,7 +54,7 @@ def install_fake_client(monkeypatch):
     return _install
 
 
-def test_tool_definitions_returns_four_tools():
+def test_tool_definitions_returns_stable_tools():
     defs = tools.tool_definitions()
     names = [d.name for d in defs]
     assert names == [
@@ -60,6 +62,8 @@ def test_tool_definitions_returns_four_tools():
         "list_datasets",
         "get_stock_info",
         "query_trading_daily_report",
+        "start_query_dataset_job",
+        "check_query_dataset_job",
     ]
     for d in defs:
         assert d.description
@@ -256,3 +260,79 @@ async def test_upstream_error_returns_user_facing_message(install_fake_client):
 async def test_unknown_tool_name_raises():
     with pytest.raises(ValueError):
         await tools.dispatch("does_not_exist", {})
+
+
+@pytest.mark.asyncio
+async def test_async_query_dataset_job_returns_handle_then_completed(
+    install_fake_client, tmp_path, monkeypatch
+):
+    install_fake_client(
+        query_result=[
+            {"date": "2026-05-10", "stock_id": "2330", "close": 1000.0},
+        ]
+    )
+    monkeypatch.setenv("FINMIND_MCP_JOB_DB", str(tmp_path / "jobs.db"))
+
+    started = await tools.dispatch(
+        "start_query_dataset_job",
+        {
+            "dataset": "TaiwanStockPrice",
+            "data_id": "2330",
+            "start_date": "2026-05-10",
+            "original_query": "查台積電 2026-05-10 股價",
+        },
+    )
+
+    assert "PROCESSING" in started
+    assert "handle_id" in started
+    handle_id = started.split("handle_id: `", 1)[1].split("`", 1)[0]
+
+    status = ""
+    for _ in range(20):
+        status = await tools.dispatch("check_query_dataset_job", {"handle_id": handle_id})
+        if "COMPLETED" in status:
+            break
+        await asyncio.sleep(0.01)
+
+    assert "COMPLETED" in status
+    assert "查台積電" in status
+    assert "TaiwanStockPrice" in status
+    assert "1000.0" in status
+
+
+@pytest.mark.asyncio
+async def test_async_query_dataset_job_processing_preserves_original_query(
+    tmp_path, monkeypatch
+):
+    monkeypatch.setenv("FINMIND_MCP_JOB_DB", str(tmp_path / "jobs.db"))
+    store = tools._make_job_store()
+    record = store.create(
+        tool_name="query_dataset",
+        arguments={"dataset": "TaiwanStockPrice"},
+        original_query="還在跑的原始問題",
+    )
+
+    status = await tools.dispatch("check_query_dataset_job", {"handle_id": record.handle_id})
+
+    assert "PROCESSING" in status
+    assert "還在跑的原始問題" in status
+
+
+@pytest.mark.asyncio
+async def test_async_query_dataset_job_failed_status_is_durable(tmp_path, monkeypatch):
+    monkeypatch.setenv("FINMIND_MCP_JOB_DB", str(tmp_path / "jobs.db"))
+    store = tools._make_job_store()
+    record = store.create(
+        tool_name="query_dataset",
+        arguments={"dataset": "TaiwanStockPrice"},
+        original_query="失敗的原始問題",
+    )
+    store.fail(record.handle_id, "FinMind request failed: TimeoutError")
+
+    reopened = tools._make_job_store()
+    monkeypatch.setattr(tools, "_make_job_store", lambda: reopened)
+    status = await tools.dispatch("check_query_dataset_job", {"handle_id": record.handle_id})
+
+    assert "FAILED" in status
+    assert "TimeoutError" in status
+    assert "失敗的原始問題" in status

@@ -1,5 +1,5 @@
 """Launches the FinMind MCP server as a subprocess, sends initialize +
-tools/list over stdio, and asserts exactly 4 tools are registered.
+tools/list over stdio, and asserts the expected tools are registered.
 
 Usage:
     uv run python smoke.py
@@ -9,6 +9,16 @@ import asyncio
 import json
 import os
 import sys
+
+
+EXPECTED_TOOLS = [
+    "query_dataset",
+    "list_datasets",
+    "get_stock_info",
+    "query_trading_daily_report",
+    "start_query_dataset_job",
+    "check_query_dataset_job",
+]
 
 
 async def main() -> None:
@@ -57,7 +67,7 @@ async def main() -> None:
     tools_list = tools_resp["result"]["tools"]
     names = [t["name"] for t in tools_list]
     print("tools:", names)
-    assert len(tools_list) == 4, f"expected 4, got {len(tools_list)}: {names}"
+    assert names == EXPECTED_TOOLS, f"expected {EXPECTED_TOOLS}, got {names}"
 
     proc.terminate()
     await proc.wait()
