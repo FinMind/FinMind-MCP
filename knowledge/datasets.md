@@ -4,7 +4,7 @@ ChatGPT Custom GPT 與 MCP server 共用此文件作為 single source of truth�
 
 ## Tier 說明
 
-FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pro**；高階方案涵蓋所有低階方案可存取的資料。下方每個 dataset 標示的是「可存取所需的最低方案」。
+FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pro**；高階方案涵蓋所有低階方案可存取的資料。下方每個 dataset 標示的是「可存取所需的最低方案」。各方案價格、API 上限與授權規則見 `pricing.md`（MCP tool `get_pricing`）。
 
 - **Free：** 不需 `data_id` 也能查（多為總覽 / 整體市場 / 列表型 dataset）
 - **Free(w/ data_id)：** 帶 `data_id`（單一標的）為 Free；省略 `data_id` 想查全市場需 Backer 以上

@@ -12,6 +12,7 @@ description: Use when the user asks about Taiwan or global financial data — �
 - `get_stock_info` — 台股代號／中文名／產業查詢（TaiwanStockInfo）
 - `list_datasets` — 列出所有可用 dataset；不確定用哪個時先查
 - `query_trading_daily_report` — 券商分點進出（Sponsor 等級，必填 `data_id` + 單日 `date`）
+- `get_pricing` — 方案價格、API 上限、授權規則；使用者問價格／方案／升級時用（不需 token）
 
 需要 `FINMIND_TOKEN`（會員中心 <https://finmindtrade.com/analysis/#/account/user> 取得）。
 未設定或 401 時，引導使用者去該頁取得 Token 並設成環境變數。

@@ -1,11 +1,12 @@
 """MCP tool implementations and markdown formatting.
 
-Four tools are exposed:
+Five tools are exposed:
 
 - `query_dataset`             — generic /api/v4/data query
 - `list_datasets`             — bundled dataset catalog (knowledge/datasets.md)
 - `get_stock_info`            — shorthand for TaiwanStockInfo
 - `query_trading_daily_report` — dedicated /api/v4/taiwan_stock_trading_daily_report
+- `get_pricing`               — bundled plan pricing (knowledge/pricing.md)
 
 Each tool returns a markdown string. `FinMindError` subclasses raised by
 `FinMindClient` are caught and converted into the 繁中 templates from
@@ -43,7 +44,7 @@ def _make_client() -> FinMindClient:
 
 
 def tool_definitions() -> list[Tool]:
-    """Return MCP Tool definitions for all four tools in stable order."""
+    """Return MCP Tool definitions for all five tools in stable order."""
     return [
         Tool(
             name="query_dataset",
@@ -122,6 +123,16 @@ def tool_definitions() -> list[Tool]:
                 "required": ["data_id", "date"],
             },
         ),
+        Tool(
+            name="get_pricing",
+            description=(
+                "查詢 FinMind 會員方案價格（讀取內建知識庫，不需連線、不需 token）。"
+                "回傳 Free / Backer / Sponsor / Sponsor Pro 的月繳／年繳價格（新台幣）、"
+                "API 每小時上限、各方案新增資料集、商業授權規則與購買連結。"
+                "使用者問價格、費用、方案差異、升級或商業用途時使用。"
+            ),
+            inputSchema={"type": "object", "properties": {}},
+        ),
     ]
 
 
@@ -134,9 +145,15 @@ async def dispatch(name: str, arguments: dict[str, Any]) -> str:
     Returns a markdown string. Errors from the upstream client are caught
     and rendered as 繁中 user-facing messages.
     """
+    # Offline tools read the bundled knowledge pack and need no token.
+    offline = {
+        "list_datasets": _list_datasets,
+        "get_pricing": _get_pricing,
+    }
+    if name in offline:
+        return offline[name]()
     handlers = {
         "query_dataset": _query_dataset,
-        "list_datasets": _list_datasets,
         "get_stock_info": _get_stock_info,
         "query_trading_daily_report": _query_trading_daily_report,
     }
@@ -169,7 +186,7 @@ async def _query_dataset(client: FinMindClient, args: dict[str, Any]) -> str:
     return _format_markdown_table(rows, title=dataset)
 
 
-async def _list_datasets(_client: FinMindClient, _args: dict[str, Any]) -> str:
+def _list_datasets() -> str:
     # FinMind has no "list all datasets" endpoint; read the bundled catalog
     # (datasets.md) — the same SSOT as the Custom GPT knowledge bundle.
     catalog = knowledge.dataset_catalog()
@@ -185,6 +202,13 @@ async def _list_datasets(_client: FinMindClient, _args: dict[str, Any]) -> str:
         desc = f" — {rec['desc']}" if rec["desc"] else ""
         lines.append(f"- `{rec['name']}`{tier}{desc}")
     return "\n".join(lines)
+
+
+def _get_pricing() -> str:
+    try:
+        return knowledge.read("finmind://pricing")
+    except (KeyError, ValueError, OSError):
+        return "方案價格請見：https://finmindtrade.com/analysis/#/Sponsor/sponsor"
 
 
 async def _get_stock_info(client: FinMindClient, args: dict[str, Any]) -> str:

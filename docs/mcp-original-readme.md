@@ -11,6 +11,7 @@ AI tools (Claude Desktop / Code, Gemini CLI, Cursor, Windsurf, Codex).
 | `list_datasets` | bundled `knowledge/datasets.md`（無 API） | — |
 | `get_stock_info` | `/api/v4/data?dataset=TaiwanStockInfo` | — |
 | `query_trading_daily_report` | `/api/v4/taiwan_stock_trading_daily_report` | `data_id`, `date` |
+| `get_pricing` | bundled `knowledge/pricing.md`（無 API、無需 token） | — |
 
 Each tool returns a markdown table; results over 500 rows are truncated
 with a note pointing to the host's code interpreter.

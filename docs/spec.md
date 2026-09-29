@@ -212,6 +212,7 @@ Claude.ai / Code / Desktop          Gemini CLI / Cursor / Windsurf
 | `list_datasets` | 列可用 dataset 與層級 | 內建 `knowledge/datasets.md`（無 API） |
 | `query_trading_daily_report` | dedicated dataset，必填 `data_id` + 單日 `date` | `/api/v4/taiwan_stock_trading_daily_report` |
 | `get_stock_info` | 股票代號 ↔ 中文名查詢 | `/api/v4/data?dataset=TaiwanStockInfo` |
+| `get_pricing` | 方案價格、API 上限、授權規則 | 內建 `knowledge/pricing.md`（無 API、無需 token） |
 
 每個 tool 的 description 從 `knowledge/datasets.md` 對應段落讀。
 
