@@ -25,13 +25,13 @@
 >
 > 此資料集屬於進階資料（例如分點進出、即時報價、鉅額交易、借貸款項擔保品餘額等），免費與 Backer 方案無法存取。
 >
-> 升級 Sponsor 方案：https://finmindtrade.com/analysis/#/account/pricing
+> 升級 Sponsor 方案：https://finmindtrade.com/analysis/#/Sponsor/sponsor
 >
 > 升級後 Token 不需更換，立即生效。
 
 **下一步建議：**
 - 若使用者只是想試水溫，可建議改查同主題的免費 dataset（例如 sponsor 的 `TaiwanStockTradingDailyReport` 改用免費的 `TaiwanStockInstitutionalInvestorsBuySell`）。
-- 列出 FinMind 各方案差異，協助使用者判斷。
+- 列出 FinMind 各方案價格與差異（見 pricing），協助使用者判斷。
 
 ## 空資料（`data: []`）
 
@@ -68,20 +68,20 @@
 
 ## Rate Limit（429 或請求數達上限）
 
-**觸發條件：** FinMind API 回應 HTTP 429，或回傳訊息提示請求數達上限。各方案上限：Free 600 req/hr、Backer 1,600 req/hr、Sponsor 6,000 req/hr、SponsorPro 20,000 req/hr。
+**觸發條件：** FinMind API 回應 HTTP 429，或回傳訊息提示請求數達上限（各方案上限見下方模板）。
 
 **回應模板：**
 > 您目前的請求數已達 FinMind 方案上限。
 >
 > 各方案每小時請求數：
-> - Free：600 次
+> - Free：300 次（註冊帶 token 600 次）
 > - Backer：1,600 次
 > - Sponsor：6,000 次
 > - SponsorPro：20,000 次
 >
 > 解法：
 > 1. 等待 1 小時後配額會重置
-> 2. 升級方案以提高上限：https://finmindtrade.com/analysis/#/account/pricing
+> 2. 升級方案以提高上限：https://finmindtrade.com/analysis/#/Sponsor/sponsor
 >
 > 升級後 Token 不需更換，立即生效。
 

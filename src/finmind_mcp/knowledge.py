@@ -7,6 +7,7 @@ URI scheme:
     finmind://instructions → knowledge/instructions.md
     finmind://token-guide → knowledge/token-guide.md
     finmind://regression  → knowledge/regression.md
+    finmind://pricing     → knowledge/pricing.md
 """
 
 from __future__ import annotations
@@ -41,6 +42,7 @@ _RESOURCE_MAP: dict[str, str] = {
     "instructions": "instructions.md",
     "token-guide": "token-guide.md",
     "regression": "regression.md",
+    "pricing": "pricing.md",
 }
 
 
@@ -172,7 +174,7 @@ _FALLBACK_TEMPLATES: dict[str, str] = {
     ),
     "payment": (
         "您查詢的資料集需要 Sponsor 會員權限才能存取。"
-        "升級 Sponsor 方案：https://finmindtrade.com/analysis/#/account/pricing"
+        "升級 Sponsor 方案：https://finmindtrade.com/analysis/#/Sponsor/sponsor"
     ),
     "empty": "在指定條件下查無資料，請確認股票代號與日期區間。",
     "upstream": (
@@ -180,6 +182,6 @@ _FALLBACK_TEMPLATES: dict[str, str] = {
     ),
     "rate_limit": (
         "您目前的請求數已達 FinMind 方案上限。"
-        "升級方案：https://finmindtrade.com/analysis/#/account/pricing"
+        "升級方案：https://finmindtrade.com/analysis/#/Sponsor/sponsor"
     ),
 }

@@ -52,7 +52,7 @@ def install_fake_client(monkeypatch):
     return _install
 
 
-def test_tool_definitions_returns_four_tools():
+def test_tool_definitions_returns_five_tools():
     defs = tools.tool_definitions()
     names = [d.name for d in defs]
     assert names == [
@@ -60,6 +60,7 @@ def test_tool_definitions_returns_four_tools():
         "list_datasets",
         "get_stock_info",
         "query_trading_daily_report",
+        "get_pricing",
     ]
     for d in defs:
         assert d.description
@@ -131,6 +132,28 @@ async def test_dispatch_list_datasets_reads_knowledge_pack(install_fake_client):
     assert "共" in md and "個" in md
     # No client call was made.
     assert client.calls == []
+
+
+@pytest.mark.asyncio
+async def test_dispatch_get_pricing_reads_knowledge_pack(install_fake_client):
+    client = install_fake_client()
+    md = await tools.dispatch("get_pricing", {})
+    for plan in ("Free", "Backer", "Sponsor", "Sponsor Pro"):
+        assert plan in md
+    assert "NT$699" in md and "NT$999" in md and "NT$3,330" in md
+    assert "https://finmindtrade.com/analysis/#/Sponsor/sponsor" in md
+    assert client.calls == []
+
+
+@pytest.mark.asyncio
+async def test_offline_tools_work_without_token(monkeypatch):
+    # Pricing and the dataset catalog must be answerable before the user
+    # has a token (e.g. someone deciding which plan to buy).
+    monkeypatch.delenv("FINMIND_TOKEN", raising=False)
+    pricing = await tools.dispatch("get_pricing", {})
+    assert "NT$999" in pricing
+    catalog = await tools.dispatch("list_datasets", {})
+    assert "TaiwanStockPrice" in catalog
 
 
 @pytest.mark.asyncio
@@ -219,7 +242,8 @@ async def test_payment_required_returns_user_facing_message(install_fake_client)
         {"dataset": "TaiwanStockBlockTrade", "data_id": "2330", "start_date": "2026-05-10"},
     )
     assert "Sponsor" in md
-    assert "pricing" in md
+    assert "#/Sponsor/sponsor" in md
+    assert "account/pricing" not in md
 
 
 @pytest.mark.asyncio

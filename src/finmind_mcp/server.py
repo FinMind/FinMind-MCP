@@ -1,6 +1,6 @@
 """FinMind MCP server entry point (stdio transport).
 
-Registers four tools and a small set of markdown resources from the
+Registers five tools and a small set of markdown resources from the
 shared knowledge pack. Designed to be launched by an MCP host such as
 Claude Desktop, Claude Code, Cursor, Windsurf, or Gemini CLI.
 
