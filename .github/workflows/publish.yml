@@ -92,7 +92,11 @@ jobs:
         run: python3 scripts/build_mcpb.py "$GITHUB_REF_NAME"
 
       - name: Install & launch like Claude Desktop (from PyPI)
-        # PyPI 剛發佈時 index 可能還沒更新，失敗就等一下重試
+        # PyPI 剛發佈時 index 可能還沒更新，失敗就等一下重試。
+        # 必須關掉 uv cache：否則第一次查到「沒有這個版本」的 index 會被快取，
+        # 之後每次重試都讀到同一份舊結果（0.0.11 發版時 5 次重試全失敗）。
+        env:
+          UV_NO_CACHE: "1"
         run: |
           for i in 1 2 3 4 5; do
             python3 scripts/check_mcpb.py && exit 0
