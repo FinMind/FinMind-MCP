@@ -77,20 +77,40 @@ setx FINMIND_TOKEN "your-token-here"
 
 ### host 啟動 server 失敗（找不到指令 / `ENOENT`）
 
-最常見的 Windows 問題：`finmind-mcp` 或 `uvx` 在 PowerShell 跑得動，但 Claude Desktop 這類**圖形介面應用程式讀到的 PATH 和終端機不同**，導致 MCP server 顯示連線失敗。解法是把設定裡的 `command` 改成執行檔的**完整路徑**。先在 PowerShell 查實際位置：
+最常見的 Windows 問題：`finmind-mcp` 或 `uvx` 在 PowerShell 跑得動，但 Claude Desktop 這類**圖形介面應用程式讀到的 PATH 和終端機不同**（例如安裝 uv 之前就已開著、或 PATH 是安裝程式事後才寫入的），host 啟動 MCP server 這個子行程時就找不到指令，顯示連線失敗。解法是把設定裡的 `command` 改成執行檔的**完整路徑**。
+
+**① 查實際位置**（在 PowerShell 執行；要打 `where.exe`，單打 `where` 在 PowerShell 是別的指令）：
 
 ```powershell
 where.exe uvx           # 方式 A
 where.exe finmind-mcp   # 方式 B
+# 或
+(Get-Command uvx).Source
 ```
 
-通常會是 `C:\Users\<你的帳號>\.local\bin\uvx.exe`（或 `finmind-mcp.exe`）。填進 JSON 時**反斜線要寫成 `\\`**，例如 Claude Desktop：
+依安裝方式不同，常見結果如下（有多行時取**第一行**，那才是實際被執行的那個）：
+
+| 安裝方式 | 常見路徑 |
+|---|---|
+| uv：`winget install` | `C:\Users\<你的帳號>\AppData\Local\Microsoft\WinGet\Links\uvx.exe` |
+| uv：`install.ps1` 安裝指令 | `C:\Users\<你的帳號>\.local\bin\uvx.exe` |
+| pipx | `C:\Users\<你的帳號>\.local\bin\finmind-mcp.exe` |
+
+請以 `where.exe` 實際印出的路徑為準，不要照抄上表。也不要在設定檔裡寫 `%USERPROFILE%`、`%LOCALAPPDATA%` 這類變數——`command` 欄位不會展開環境變數，必須是完整的實際路徑。
+
+**② 先在 PowerShell 用完整路徑跑一次**，確認路徑本身沒問題（前面的 `&` 不能省略）：
+
+```powershell
+& "C:\Users\<你的帳號>\AppData\Local\Microsoft\WinGet\Links\uvx.exe" finmind-mcp --help
+```
+
+**③ 填進設定檔**。JSON 裡的反斜線是跳脫字元，**每個 `\` 都要寫成兩個 `\\`**（或全部改用正斜線 `/`，Windows 一樣認得）。直接貼上 `where.exe` 的結果（單一反斜線）會讓整個檔案變成不合法的 JSON，host 會讀不到**所有** MCP server，而不只是 finmind。以 Claude Desktop 為例：
 
 ```json
 {
   "mcpServers": {
     "finmind": {
-      "command": "C:\\Users\\<你的帳號>\\.local\\bin\\uvx.exe",
+      "command": "C:\\Users\\<你的帳號>\\AppData\\Local\\Microsoft\\WinGet\\Links\\uvx.exe",
       "args": ["finmind-mcp"],
       "env": {
         "FINMIND_TOKEN": "your-token-here"
@@ -99,6 +119,17 @@ where.exe finmind-mcp   # 方式 B
   }
 }
 ```
+
+正斜線寫法等價：`"command": "C:/Users/<你的帳號>/AppData/Local/Microsoft/WinGet/Links/uvx.exe"`。
+
+**④ 驗證設定檔是合法的 JSON**（沒有輸出錯誤就代表格式正確；出現 `Invalid \escape` 就是反斜線沒寫成兩個）：
+
+```powershell
+uv run --no-project python -m json.tool "$env:APPDATA\Claude\claude_desktop_config.json"   # 方式 A
+python -m json.tool "$env:APPDATA\Claude\claude_desktop_config.json"                       # 方式 B
+```
+
+> Codex CLI 的設定檔是 TOML：路徑請用**單引號**字串，例如 `command = 'C:\Users\<你的帳號>\.local\bin\uvx.exe'`，單引號內反斜線不需要跳脫；若用雙引號則同樣要寫成 `\\`。
 
 ### 改了設定卻沒有生效
 
