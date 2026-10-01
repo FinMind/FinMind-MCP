@@ -60,3 +60,26 @@ jobs:
 
       - name: Catalog vs FinMind-Doc sync check
         run: python scripts/check_doc_sync.py --doc ./FinMind-Doc
+
+  mcpb:
+    # Claude Desktop 擴充套件（.mcpb）：用官方 CLI 驗證 + 打包，再模擬 host 解壓、
+    # 以 uv 啟動並走一次 MCP 握手。--dev 讓相依指向本 PR 的原始碼，而非 PyPI 舊版。
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # --dev 會從原始碼 build 本套件，hatch-vcs 需要 tags
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build finmind.mcpb
+        run: python3 scripts/build_mcpb.py --dev
+
+      - name: Install & launch like Claude Desktop
+        run: python3 scripts/check_mcpb.py
