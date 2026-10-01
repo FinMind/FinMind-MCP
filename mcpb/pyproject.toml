@@ -1,0 +1,10 @@
+# Claude Desktop 擴充套件（.mcpb）用的執行環境定義。
+# Claude Desktop 啟動時以 `uv run` 依此檔自動準備 Python 與相依套件，使用者不用自己裝。
+# finmind-mcp 的版本由 scripts/build_mcpb.py 在打包時改成與發版 tag 相同，不要手動改。
+[project]
+name = "finmind-mcpb"
+version = "0.0.0"
+requires-python = ">=3.10"
+dependencies = [
+    "finmind-mcp==0.0.0",
+]

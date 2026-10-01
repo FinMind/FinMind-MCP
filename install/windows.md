@@ -2,6 +2,8 @@
 
 各 host 的安裝文件（[Claude Desktop](claude-desktop.md)、[Cursor](cursor.md) 等）中的指令以 macOS / Linux 為例。Windows 使用者請先照本頁完成「安裝套件」與「設定 Token」，再回到對應 host 的文件貼設定；本頁最後整理了 Windows 常見問題（尤其是 host 顯示找不到 `finmind-mcp` 指令的狀況）。
 
+> **使用 Claude Desktop？** 直接用[一鍵安裝擴充套件](claude-desktop.md#方式一一鍵安裝擴充套件推薦)：下載 `finmind.mcpb` 點兩下、貼上 token 就完成，**不需要本頁任何步驟**。本頁適用於 Cursor、Windsurf 等其他工具，或想手動設定的使用者。
+
 以下指令都在 **PowerShell** 執行（開始功能表搜尋「PowerShell」開啟即可，不需系統管理員權限）。
 
 ## 1. 安裝套件
@@ -77,7 +79,11 @@ setx FINMIND_TOKEN "your-token-here"
 
 ### host 啟動 server 失敗（找不到指令 / `ENOENT`）
 
-最常見的 Windows 問題：`finmind-mcp` 或 `uvx` 在 PowerShell 跑得動，但 Claude Desktop 這類**圖形介面應用程式讀到的 PATH 和終端機不同**（例如安裝 uv 之前就已開著、或 PATH 是安裝程式事後才寫入的），host 啟動 MCP server 這個子行程時就找不到指令，顯示連線失敗。解法是把設定裡的 `command` 改成執行檔的**完整路徑**。
+最常見的 Windows 問題：`finmind-mcp` 或 `uvx` 在 PowerShell 跑得動，但 Claude Desktop 這類**圖形介面應用程式讀到的 PATH 和終端機不同**（例如安裝 uv 之前就已開著、或 PATH 是安裝程式事後才寫入的），host 啟動 MCP server 這個子行程時就找不到指令，顯示連線失敗。
+
+**先試最簡單的**：多半只是該程式在安裝 uv 之前就開著，還沒讀到新的 PATH。把它**完全結束**（Claude Desktop 要到系統匣圖示按右鍵選結束，見下一題）再重開，通常就好了。
+
+仍然不行，再把設定裡的 `command` 改成執行檔的**完整路徑**：
 
 **① 查實際位置**（在 PowerShell 執行；要打 `where.exe`，單打 `where` 在 PowerShell 是別的指令）：
 

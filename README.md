@@ -24,7 +24,7 @@ pipx install finmind-mcp
 
 | Host | 安裝指引 |
 |---|---|
-| Claude Desktop | [install/claude-desktop.md](install/claude-desktop.md) |
+| Claude Desktop | **一鍵安裝**：下載 [finmind.mcpb](https://github.com/FinMind/FinMind-MCP/releases/latest/download/finmind.mcpb) 點兩下 → 詳見 [install/claude-desktop.md](install/claude-desktop.md) |
 | Claude Code | [install/claude-code.md](install/claude-code.md) |
 | Cursor | [install/cursor.md](install/cursor.md) |
 | Windsurf | [install/windsurf.md](install/windsurf.md) |
@@ -52,6 +52,7 @@ FinMind-MCP/
 ├── knowledge/            # SSOT markdown（dataset、行為規則、錯誤腳本、Q&A）
 ├── chatgpt/              # Custom GPT artifacts（OpenAPI + build script）
 ├── install/              # 各 host 安裝指引
+├── mcpb/                 # Claude Desktop 擴充套件（.mcpb）的 manifest 與進入點
 └── docs/                 # 設計 spec 與實作 plan
 ```
 
@@ -78,6 +79,15 @@ uv run pytest -q          # 先確認測試過（CI 也會再跑一次）
 git tag v0.1.0
 git push origin v0.1.0    # → CI 自動 build + 發 PyPI
 ```
+
+PyPI 發佈成功後，同一個 workflow 會打包 Claude Desktop 擴充套件 `finmind.mcpb`（`finmind-mcp` 釘在同一版本）並附加到該 tag 的 GitHub Release，下載連結 `releases/latest/download/finmind.mcpb` 會自動指向最新版。本機打包測試：
+
+```bash
+python3 scripts/build_mcpb.py --dev   # 需要 Node.js；--dev 用本機原始碼
+python3 scripts/check_mcpb.py         # 模擬 Claude Desktop 解壓、啟動、MCP 握手
+```
+
+新增 tool 時記得同步 `mcpb/manifest.json` 的 `tools`（`tests/test_mcpb.py` 會擋）。
 
 `knowledge/` 由 hatch `force-include` 打包進 wheel（`finmind_mcp/_knowledge/`），server runtime 直接讀、不用 compile；發版後用戶 `uvx finmind-mcp` / `pipx install finmind-mcp` 即抓到新版。
 
