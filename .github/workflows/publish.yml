@@ -18,6 +18,9 @@ name: Publish to PyPI
 #   - git tag v0.1.0
 #   - git push origin v0.1.0   ← 推 tag 就觸發；hatch-vcs 從 tag 算出版本 0.1.0
 #                                 自動 build → 上傳 PyPI（PyPI 版本號不可重複，所以每次用新 tag）
+#   - 上 PyPI 之後，mcpb job 會打包 Claude Desktop 擴充套件 finmind.mcpb（釘同版本），
+#     附加到該 tag 的 GitHub Release。下載連結固定為
+#     https://github.com/FinMind/FinMind-MCP/releases/latest/download/finmind.mcpb
 
 on:
   push:
@@ -66,3 +69,41 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+  mcpb:
+    # 必須在 PyPI 發佈之後：.mcpb 裡的 pyproject 釘 finmind-mcp==<tag>，
+    # 使用者安裝時由 Claude Desktop 用 uv 從 PyPI 下載。
+    needs: pypi-publish
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # 建立 / 更新 GitHub Release
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build finmind.mcpb (pinned to this tag)
+        run: python3 scripts/build_mcpb.py "$GITHUB_REF_NAME"
+
+      - name: Install & launch like Claude Desktop (from PyPI)
+        # PyPI 剛發佈時 index 可能還沒更新，失敗就等一下重試
+        run: |
+          for i in 1 2 3 4 5; do
+            python3 scripts/check_mcpb.py && exit 0
+            echo "retry $i: waiting for PyPI index"; sleep 60
+          done
+          exit 1
+
+      - name: Attach to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 \
+            || gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --title "$GITHUB_REF_NAME"
+          gh release upload "$GITHUB_REF_NAME" dist/finmind.mcpb --clobber

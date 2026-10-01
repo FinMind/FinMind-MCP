@@ -1,0 +1,53 @@
+{
+  "manifest_version": "0.4",
+  "name": "finmind",
+  "display_name": "FinMind",
+  "version": "0.0.0",
+  "description": "台股／期權／總經／全球金融資料 MCP server（FinMind）",
+  "long_description": "讓 Claude 直接查詢 FinMind 的台股、期貨選擇權、總體經濟與全球金融資料。安裝時輸入 FinMind Token 即可使用，不需要另外設定 Python 或編輯設定檔。",
+  "author": {
+    "name": "FinMind",
+    "email": "finmind.tw@gmail.com",
+    "url": "https://finmindtrade.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FinMind/FinMind-MCP"
+  },
+  "homepage": "https://github.com/FinMind/FinMind-MCP",
+  "documentation": "https://github.com/FinMind/FinMind-MCP/blob/master/install/claude-desktop.md",
+  "support": "https://github.com/FinMind/FinMind-MCP/issues",
+  "icon": "icon.png",
+  "server": {
+    "type": "uv",
+    "entry_point": "src/server.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": ["run", "--directory", "${__dirname}", "src/server.py"],
+      "env": {
+        "FINMIND_TOKEN": "${user_config.finmind_token}"
+      }
+    }
+  },
+  "tools": [
+    { "name": "query_dataset", "description": "查詢 FinMind dataset（股價、財報、籌碼、期權、總經等）" },
+    { "name": "list_datasets", "description": "列出可查詢的 dataset 與所需會員等級" },
+    { "name": "get_stock_info", "description": "查詢股票代號、名稱與產業別" },
+    { "name": "query_trading_daily_report", "description": "查詢個股單日分點進出" },
+    { "name": "get_pricing", "description": "查詢 FinMind 會員方案與價格" }
+  ],
+  "user_config": {
+    "finmind_token": {
+      "type": "string",
+      "title": "FinMind Token",
+      "description": "到 https://finmindtrade.com/analysis/#/account/user 登入，在「API Token」分頁按「複製」後貼上。",
+      "required": true,
+      "sensitive": true
+    }
+  },
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"]
+  },
+  "keywords": ["finmind", "finance", "taiwan-stock", "futures", "options"],
+  "license": "Apache-2.0"
+}
