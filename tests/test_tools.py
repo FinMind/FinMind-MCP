@@ -29,11 +29,12 @@ class FakeClient:
             raise self.raise_exc
         return list(self.query_result)
 
-    async def query_trading_daily_report(self, data_id, date):
+    async def query_trading_daily_report(self, date, data_id=None, securities_trader_id=None):
         self.calls.append((
             "query_trading_daily_report",
             data_id,
             date,
+            securities_trader_id,
         ))
         if self.raise_exc is not None:
             raise self.raise_exc
@@ -52,7 +53,7 @@ def install_fake_client(monkeypatch):
     return _install
 
 
-def test_tool_definitions_returns_five_tools():
+def test_tool_definitions_returns_seven_tools():
     defs = tools.tool_definitions()
     names = [d.name for d in defs]
     assert names == [
@@ -61,6 +62,8 @@ def test_tool_definitions_returns_five_tools():
         "get_stock_info",
         "query_trading_daily_report",
         "get_pricing",
+        "query_endpoint",
+        "download_storage_object",
     ]
     for d in defs:
         assert d.description
@@ -217,8 +220,26 @@ async def test_dispatch_query_trading_daily_report(install_fake_client):
         "query_trading_daily_report",
         "2330",
         "2026-05-10",
+        None,
     )
     assert "2330" in md
+
+
+@pytest.mark.asyncio
+async def test_query_trading_daily_report_by_broker_only(install_fake_client):
+    client = install_fake_client(trading_result=[{"stock_id": "0050"}])
+    await tools.dispatch(
+        "query_trading_daily_report",
+        {"securities_trader_id": "1020", "date": "2024-07-01"},
+    )
+    assert client.calls[0] == ("query_trading_daily_report", None, "2024-07-01", "1020")
+
+
+@pytest.mark.asyncio
+async def test_query_trading_daily_report_needs_an_id(install_fake_client):
+    client = install_fake_client()
+    md = await tools.dispatch("query_trading_daily_report", {"date": "2024-07-01"})
+    assert "securities_trader_id" in md and client.calls == []
 
 
 @pytest.mark.asyncio
@@ -236,13 +257,18 @@ async def test_auth_error_returns_user_facing_message(install_fake_client):
 
 @pytest.mark.asyncio
 async def test_payment_required_returns_user_facing_message(install_fake_client):
-    install_fake_client(raise_exc=PaymentRequiredError("sponsor"))
+    detail = "Your level is free. Please update your user level."
+    install_fake_client(raise_exc=PaymentRequiredError(detail, detail=detail, status=400))
     md = await tools.dispatch(
         "query_dataset",
         {"dataset": "TaiwanStockBlockTrade", "data_id": "2330", "start_date": "2026-05-10"},
     )
-    assert "Sponsor" in md
+    # Names the dataset + the plan it needs (from datasets.md), quotes the API.
+    assert "`TaiwanStockBlockTrade`" in md
+    assert "**Sponsor** 以上方案" in md
+    assert detail in md
     assert "#/Sponsor/sponsor" in md
+    assert "get_pricing" in md
     assert "account/pricing" not in md
 
 

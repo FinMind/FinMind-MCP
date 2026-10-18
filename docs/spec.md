@@ -59,7 +59,7 @@ FinMind 目前在 Claude Code / Cursor / Windsurf / Gemini CLI / Codex 已透過
 | `datasets-full.md` | 75+ dataset 全列表（phase 2）| Knowledge file / MCP resource |
 | `instructions.md` | 角色定位、語言、回應格式、拒答規則 | GPT instructions / MCP server prompt |
 | `examples.md` | 範例問答對（涵蓋每個 dataset 至少 1 題）| Few-shot / regression |
-| `errors.md` | 401 / 402 / 空資料 / rate limit 錯誤回應腳本 | 兩端共用 |
+| `errors.md` | 401 / 方案不足 / 參數錯誤 / 空資料 / rate limit 錯誤回應腳本 | 兩端共用 |
 | `token-guide.md` | Token 取得步驟（含截圖路徑）| 兩端首次互動時用 |
 | `regression.md` | 10 題以上的 regression 題庫 + 期望輸出 | 上線前驗證 |
 
@@ -101,7 +101,7 @@ FinMind 目前在 Claude Code / Cursor / Windsurf / Gemini CLI / Codex 已透過
 - **Dataset 選擇**：根據問句選對 dataset，不確定時列選項給用戶
 - **資料呈現**：預設 markdown 表格；用戶說「畫圖」改用平台 code 環境
 - **錯誤處理**：依 `errors.md` 腳本
-  - 402 Payment Required → 提示升級
+  - 方案不足（400 `Your level is ...`）→ 說明所需方案並提示升級；402 為請求數達上限
   - 401 Unauthorized → 提示 Token 無效
   - 空資料 → 確認日期 / 股票代號
 - **資料量保護**：預估 > ~500 列時先給摘要、提議用 code 環境處理
@@ -210,9 +210,17 @@ Claude.ai / Code / Desktop          Gemini CLI / Cursor / Windsurf
 |---|---|---|
 | `query_dataset` | 通用查詢，必填 `dataset` / `data_id` / `start_date` | `/api/v4/data` |
 | `list_datasets` | 列可用 dataset 與層級 | 內建 `knowledge/datasets.md`（無 API） |
-| `query_trading_daily_report` | dedicated dataset，必填 `data_id` + 單日 `date` | `/api/v4/taiwan_stock_trading_daily_report` |
+| `query_trading_daily_report` | dedicated dataset，必填單日 `date`，`data_id` 或 `securities_trader_id` 擇一 | `/api/v4/taiwan_stock_trading_daily_report` |
 | `get_stock_info` | 股票代號 ↔ 中文名查詢 | `/api/v4/data?dataset=TaiwanStockInfo` |
 | `get_pricing` | 方案價格、API 上限、授權規則 | 內建 `knowledge/pricing.md`（無 API、無需 token） |
+| `query_endpoint` | 通用 dedicated endpoint 查詢，`endpoint` 為 allowlist enum，參數依 endpoint 在本地驗證 | `taiwan_stock_trading_daily_report`、`taiwan_stock_warrant_trading_daily_report`、`taiwan_stock_trading_daily_report_secid_agg`、`taiwan_stock_tick_snapshot`、`taiwan_futures_snapshot`、`taiwan_options_snapshot`、`datalist`、`translation` |
+| `download_storage_object` | 整日全市場 parquet 下載到本機，只回摘要（路徑、筆數、schema、前幾列／過濾結果 ≤500 列） | `/api/v4/storage_objects`（Sponsor Pro） |
+
+**Endpoint 範圍：** 只放 FinMind-Doc 公開記載、且 live 驗證過的 endpoint；allowlist 與參數規則集中在 `src/finmind_mcp/endpoints.py`，新增 endpoint 只要加一筆。刻意不放：`/login`（帳密，MCP 一律用 token）、`/health`、`/websocket`（串流）、`storage_objects?dataset=TaiwanStockFinancialReportFile`（Doc 未公開）。
+
+**選 `query_endpoint`（單一通用工具）而非每支 endpoint 一個工具的理由：** dedicated endpoint 的參數都是同一組小集合（`data_id` / `securities_trader_id` / `date` / `start_date` / `end_date` / `dataset`），攤平成頂層參數＋`endpoint` enum，LLM 一個 schema 就看得懂；各 endpoint 的必填／擇一規則寫在 tool description 並在本地先驗證（缺參數不浪費 API quota，訊息直接告訴 LLM 缺什麼）。工具數維持少量，避免 host 端工具清單膨脹；`query_trading_daily_report` 為相容舊設定保留。`storage_objects` 回的是檔案不是 JSON，處理流程完全不同，所以獨立成工具。
+
+**錯誤對照（以 live API 為準）：** 方案不足 = HTTP 400 + `Your level is ... update your user level`；HTTP 402 = 每小時請求數達上限；`Token is illegal.` = 400。工具輸出一律附 API 回應原文（`detail` / `msg`，過長截斷），方案不足時註明所需方案並指向價格頁與 `get_pricing`。
 
 每個 tool 的 description 從 `knowledge/datasets.md` 對應段落讀。
 
@@ -378,7 +386,7 @@ MVP 上線前必須通過：
 - [ ] `knowledge/` 目錄齊全（datasets / instructions / errors / examples / token-guide / regression）
 - [ ] 10 題 regression 在兩條 distribution 都過（含股價、營收、財報、三大法人、股利、期權、匯率、利率、畫圖、跨股比較）
 - [ ] Token 未設定引導訊息清楚
-- [ ] 401 / 402 / 空資料三種錯誤情境正確
+- [ ] 401 / 方案不足 / 參數錯誤 / 空資料錯誤情境正確
 - [ ] AgentSkill.md 新增 ChatGPT + MCP 兩個 tab，含安裝步驟與截圖
 
 ### ChatGPT 線

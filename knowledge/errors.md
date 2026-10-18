@@ -1,90 +1,61 @@
 ## 401 Unauthorized（Token 無效）
 
-**觸發條件：** FinMind API 回應 HTTP 401，或 Token 未設定（ChatGPT 端 Action 未填 API Key；MCP 端 `FINMIND_TOKEN` 環境變數不存在）。
+**觸發條件：** HTTP 401、回應 `Token is illegal.`，或 Token 未設定（ChatGPT Action 未填 API Key；MCP 端 `FINMIND_TOKEN` 不存在）。
 
 **回應模板：**
-> 您的 FinMind Token 無法驗證。請確認下列三點：
-> 1. Token 是否正確複製（前後無多餘空白、無換行）
-> 2. 是否已完成註冊信箱驗證
-> 3. 是否使用最新 Token（重設密碼後舊 Token 會失效）
+> 您的 FinMind Token 無法驗證。請確認：
+> 1. Token 是否完整複製（前後無空白、換行）
+> 2. 是否已完成信箱驗證
+> 3. 是否為最新 Token（重設後舊 Token 失效）
 >
-> 取得或重新產生 Token：https://finmindtrade.com/analysis/#/account/user
->
-> 設定完成後請再試一次，或告訴我哪一步驟卡住了。
+> 取得 Token：https://finmindtrade.com/analysis/#/account/user
 
-**下一步建議：**
-- ChatGPT：請使用者到 GPT 設定頁的「Authentication」面板重新填入 Token。
-- MCP host：請使用者編輯 MCP server 設定檔的 `env.FINMIND_TOKEN`，並重啟 host。
+**下一步建議：** ChatGPT 到 GPT 設定「Authentication」重填；MCP host 改 `env.FINMIND_TOKEN` 後重啟。
 
-## 402 Payment Required（需 sponsor 方案）
+## 方案權限不足（Tier 不足）
 
-**觸發條件：** FinMind API 回應 HTTP 402，或回傳 JSON `status: 402`。代表此 dataset 屬於 sponsor 等級，免費 / backer 方案無權限存取。
+**觸發條件：** 回應訊息為 `Your level is ... Please update your user level`（FinMind 以 HTTP 400 回）。MCP 工具會在模板前標出所需方案（Backer / Sponsor / Sponsor Pro）與 API 回應原文。
 
 **回應模板：**
-> 您查詢的資料集需要 **Sponsor 會員**權限才能存取。
+> 您查詢的資料需要 **[所需方案]** 以上方案，目前方案無法存取。
+> API 回應原文：`[回應原文]`
 >
-> 此資料集屬於進階資料（例如分點進出、即時報價、鉅額交易、借貸款項擔保品餘額等），免費與 Backer 方案無法存取。
->
-> 升級 Sponsor 方案：https://finmindtrade.com/analysis/#/Sponsor/sponsor
->
-> 升級後 Token 不需更換，立即生效。
+> 升級方案：https://finmindtrade.com/analysis/#/Sponsor/sponsor（升級後 Token 不需更換，立即生效）
 
-**下一步建議：**
-- 若使用者只是想試水溫，可建議改查同主題的免費 dataset（例如 sponsor 的 `TaiwanStockTradingDailyReport` 改用免費的 `TaiwanStockInstitutionalInvestorsBuySell`）。
-- 列出 FinMind 各方案價格與差異（見 pricing），協助使用者判斷。
+**下一步建議：** 用 pricing（MCP `get_pricing`）列出方案價格與差異；需要時建議同主題的較低方案 dataset。不要嘗試其他繞過方式。
+
+## 參數錯誤（400 / 404 / 422）
+
+**觸發條件：** 缺必填參數、日期格式錯、dataset 不在該 endpoint 支援清單，或整日檔該日不存在（404）。
+
+**回應模板：**
+> 查詢參數有誤：`[API 回應原文]`。我會依原因調整參數後再查一次。
+
+**下一步建議：** 依原文修正後重試一次；dataset 走專屬 endpoint 時改用正確的 endpoint；404 整日檔通常是非交易日。
 
 ## 空資料（`data: []`）
 
-**觸發條件：** FinMind API 回應 HTTP 200 但 `data` 為空陣列。常見原因：股票代號錯誤、日期區間內無交易日、dataset 尚未涵蓋該標的、未來日期。
+**觸發條件：** HTTP 200 但 `data` 為空。常見原因：代號錯誤、區間內無交易日、超出資料起始日、未來日期。
 
 **回應模板：**
-> 在指定條件下查無資料。可能原因：
-> 1. 股票代號錯誤（例：`2330` 為台積電，請確認代號）
-> 2. 日期區間內全為假日 / 非交易日
-> 3. 此資料集尚未涵蓋該標的，或起始日期早於資料庫最早日
-> 4. 日期超過今日（無未來資料）
->
-> 請確認後再試，或告訴我您想查詢的標的與大致時間，我可以協助您調整。
+> 在指定條件下查無資料。可能原因：代號錯誤、區間內皆非交易日、早於資料起始日，或日期超過今日。請確認後再試，或告訴我想查的標的與時間。
 
-**下一步建議：**
-- 主動以 `TaiwanStockInfo` 驗證代號是否存在。
-- 將日期區間擴大（例如從「最近一週」改為「最近一個月」）後重試。
-- 若是新上市 / 新編資料集，提醒使用者可能還沒回補歷史資料。
+**下一步建議：** 用 `TaiwanStockInfo` 驗證代號；擴大日期區間重試。
 
 ## HTTP Timeout / 5xx（暫時連線異常）
 
-**觸發條件：** httpx 拋出 `TimeoutException`、`ConnectError`，或 FinMind API 回應 HTTP 500 / 502 / 503 / 504。
+**觸發條件：** 連線逾時、無法連線，或 HTTP 5xx。
 
 **回應模板：**
-> FinMind 服務目前回應較慢或暫時無法連線，這通常是短暫狀況。
->
-> 請稍候 1 - 2 分鐘後再試一次。若連續失敗超過 10 分鐘，可至 FinMind 官網確認服務狀態：https://finmindtrade.com
->
-> 若情況持續，您可以將本次查詢條件回報給我，我會記錄下來。
+> FinMind 服務暫時無法連線，請 1 - 2 分鐘後再試。若持續失敗，可至 https://finmindtrade.com 確認服務狀態。
 
-**下一步建議：**
-- 不要立即重試三次以上，避免加重上游負載。
-- 若使用者連續多次遇到同一錯誤，建議改查較小區間或縮減 dataset。
+**下一步建議：** 不要連續重試三次以上；改查較小區間。
 
-## Rate Limit（429 或請求數達上限）
+## Rate Limit（402 / 429 請求數達上限）
 
-**觸發條件：** FinMind API 回應 HTTP 429，或回傳訊息提示請求數達上限（各方案上限見下方模板）。
+**觸發條件：** HTTP 402（`Requests reach the upper limit`）或 429。
 
 **回應模板：**
-> 您目前的請求數已達 FinMind 方案上限。
->
-> 各方案每小時請求數：
-> - Free：300 次（註冊帶 token 600 次）
-> - Backer：1,600 次
-> - Sponsor：6,000 次
-> - SponsorPro：20,000 次
->
-> 解法：
-> 1. 等待 1 小時後配額會重置
-> 2. 升級方案以提高上限：https://finmindtrade.com/analysis/#/Sponsor/sponsor
->
-> 升級後 Token 不需更換，立即生效。
+> 已達本小時請求上限（Free 600、Backer 1,600、Sponsor 6,000、Sponsor Pro 20,000 次／小時）。等 1 小時重置，或升級方案：https://finmindtrade.com/analysis/#/Sponsor/sponsor
 
-**下一步建議：**
-- 提示使用者可合併查詢區間，減少請求次數（例如一次查一年比一次查一天好）。
-- 若是 MCP 端密集呼叫，建議在 host 端加入快取或調整查詢頻率。
+**下一步建議：** 合併查詢區間以減少請求次數（一次查一年比逐日查好）。
