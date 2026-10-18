@@ -1,4 +1,4 @@
-本文件列出 FinMind 支援的 dataset，涵蓋台股技術面 / 籌碼面 / 基本面 / 衍生性商品 / 即時資料 / 可轉債 / 國際市場 / 全球總經，共約 107 個。
+本文件列出 FinMind 支援的 dataset，涵蓋台股技術面 / 籌碼面 / 基本面 / 衍生性商品 / 即時資料 / 可轉債 / 國際市場 / 全球總經，共約 108 個。
 ChatGPT Custom GPT 與 MCP server 共用此文件作為 single source of truth。
 所有參數命名以 FinMind v4 API（`/api/v4/data`，少數 dedicated endpoint 另列）為準；日期格式一律 `YYYY-MM-DD`。
 
@@ -69,7 +69,8 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Required:** `dataset=TaiwanStockPriceTick`, `data_id` (股票代號), `start_date` (single day)
 - **Optional:** （無）
 - **Key columns:** date, stock_id, deal_price, volume, Time, TickType
-- **描述:** 歷史逐筆成交（單日，含時間戳與委買委賣方向）。資料區間 **2018-12-07 ~ now**；已知缺漏日期 2018-12-22、2019-02-20、2019-02-21、2019-02-22，另 2019-05-16 僅有少數 ETF 的資料
+- **描述:** 歷史逐筆成交（單日，含時間戳與委買委賣方向）。資料區間 **2018-12-07 ~ now**；已知缺漏日期 2018-12-22、2019-02-20、2019-02-21、2019-02-22，另 2019-05-16 僅有少數 ETF 的資料；上市股票部分時段逐筆缺漏、無法補齊：2022-03-01 ~ 2022-03-10 開盤後數段（最長約 2 分鐘）、2024-07-02 09:38:25 ~ 09:38:40、2024-07-03 09:00:11 ~ 09:00:22、2024-07-18 12:12:32 ~ 12:12:45、2026-03-10 11:19:45 ~ 11:19:55。**含已下市股票**（2018-12-07 ~ 2024-03-29 下市者亦可查）
+- **同時同價同量的多列不是重複:** 逐筆交易制度下，一筆大單分次撮合會產生時間、價、量完全相同的多列，皆為真實成交，請勿去重；可用 `TaiwanStockPrice` 的 `Trading_turnover`（成交筆數）與成交量核對
 - **TickType:** 1＝外盤成交（買方主動）、2＝內盤成交（賣方主動）、0＝無法判定。2018-12-07 ~ 2023-03-10 已全面依 2023-03-13 之後的規則重新判定；**2021-06-22 以前約 8% ~ 10% 的成交為 0**（來源本身無內外盤資訊），統計時請將 0 單獨處理，不要併入外盤或內盤
 - **Bulk download (Sponsor Pro):** `GET /api/v4/storage_objects?dataset=TaiwanStockPriceTick&date=YYYY-MM-DD` 一次取整日全市場 parquet（signed URL，免逐檔查詢）；SDK `taiwan_stock_tick(date='YYYY-MM-DD', use_object=True)`。**歷史整日檔案皆可下載**，最早 2018-12-07（2018-12-06 以前來源本身無逐筆資料）。整日資料依 `stock_id`、`Time` 排序，同一時間多筆成交依實際成交先後排列，可直接依檔案順序取開盤或某時點前最後一筆。此整日下載限 **Sponsor Pro**（與上方逐檔查詢的 Backer tier 不同）
 
@@ -127,9 +128,10 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Required:** `dataset=TaiwanStockKBar`, `data_id` (股票代號), `start_date` (single day)
 - **Optional:** （無）
 - **Key columns:** date, minute, stock_id, open, high, low, close, volume
-- **描述:** 分鐘 K 線（單日，1 分鐘粒度）。個股資料區間 2019-01-01 ~ now；已知缺漏：2019-02-20、2019-02-21、2019-02-22 僅有加權指數 TAIEX 分 K、無個股資料，2019-05-16 個股僅有少數 ETF 的資料。**大盤分 K 請用 `TAIEX`**（舊的 `stock_id=001` 已移除）
+- **描述:** 分鐘 K 線（單日，1 分鐘粒度）。個股資料區間 2019-01-01 ~ now；已知缺漏：2019-02-20、2019-02-21、2019-02-22 僅有加權指數 TAIEX 分 K、無個股資料，2019-05-16 個股僅有少數 ETF 的資料；上市股票部分時段逐筆缺漏、無法補齊：2022-03-01 ~ 2022-03-10 開盤後數段（最長約 2 分鐘）、2024-07-02 09:38:25 ~ 09:38:40、2024-07-03 09:00:11 ~ 09:00:22、2024-07-18 12:12:32 ~ 12:12:45、2026-03-10 11:19:45 ~ 11:19:55。**含已下市股票**。API 回傳完整交易時段（含上市櫃 14:30 盤後定價那一根、興櫃 13:30 ~ 15:00），與整日下載檔一致。**大盤分 K 請用 `TAIEX`**（舊的 `stock_id=001` 已移除）
 - **加權指數分 K:** `data_id="TAIEX"` 可取得臺灣加權股價指數的分 K，資料區間 **2005-01-03 ~ now**（比個股更長）；每個交易日 271 筆、涵蓋 09:00:00 ~ 13:30:00 每分鐘一筆，補行交易的星期六同樣有資料。指數本身沒有成交量，`volume` 固定為 0，`open` / `high` / `low` / `close` 為該分鐘內的指數值
 - **volume 單位:** 沿用各市場原始交易單位——上市 / 上櫃個股為「張」（1 張 = 1,000 股）、興櫃個股為「股」
+- **13:33 分 K（延緩收盤）:** 上市櫃個股收盤集合競價觸發價格穩定措施時，收盤撮合延到 13:33，當日多一根 13:33 分 K；這是當日正式收盤撮合、請保留，其 `close` 等於 `TaiwanStockPrice.close`。興櫃交易至 15:00，13:33 只是一般分鐘，請依「當日」市場別判斷
 - **Bulk download (Sponsor Pro):** `GET /api/v4/storage_objects?dataset=TaiwanStockKBar&date=YYYY-MM-DD` 一次取整日全市場 parquet（signed URL，免逐檔查詢）；SDK `taiwan_stock_kbar(date='YYYY-MM-DD', use_object=True)`。**歷史整日檔案皆可下載**，最早 2019-01-02。此整日下載限 **Sponsor Pro**
 
 ### TaiwanStockWeekPrice
@@ -154,7 +156,7 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Required:** `dataset=TaiwanStockEvery5SecondsIndex`, `start_date` (single day)
 - **Optional:** （無）
 - **Key columns:** date, time, stock_id, price, kind
-- **描述:** 每 5 秒分類指數。上市、上櫃各指數的 **13:30:00 為官方收盤指數**（上櫃 13:25 ~ 13:29:55 為收盤集合競價期間，揭示值維持不變）。上櫃化學類名稱 2007-07-02 ~ 2025-09-12 為 `ChemicalEngineering`、2025-09-15 起為 `Chemical`，為同一指數，跨期查詢請合併。已知缺漏：2017-05-08 上櫃各指數由 09:00:05 開始、無 09:00:00
+- **描述:** 每 5 秒分類指數。上市、上櫃各指數的 **13:30:00 為官方收盤指數**（上櫃 13:25 ~ 13:29:55 為收盤集合競價期間，揭示值維持不變）。上櫃化學類全期間統一為 `Chemical`（2007-07-02 ~ 2025-09-12 原名 `ChemicalEngineering`，已合併，`ChemicalEngineering` 不再提供）。已知缺漏：2017-05-08 上櫃各指數由 09:00:05 開始、無 09:00:00
 
 ### TaiwanStockSuspended
 - **Endpoint:** `/api/v4/data`
@@ -178,7 +180,7 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Required:** `dataset=TaiwanStockPriceLimit`, `data_id` (股票代號), `start_date`
 - **Optional:** （無）
 - **Key columns:** date, stock_id, reference_price, limit_up, limit_down
-- **描述:** 每日漲跌停價（2000-01-01 起）
+- **描述:** 每日漲跌停價（2000-01-01 起）。前一交易日無成交時，次日參考價依交易所規則以前一日參考價為準、並依最後揭示買賣價調整；興櫃（含轉上市櫃前的興櫃期間）無漲跌幅限制，`limit_up` / `limit_down` 為 0
 
 ## 台股 - 籌碼面
 
@@ -277,9 +279,10 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Required:** `data_id` (股票代號), `date` (注意是 `date`，不是 `start_date`)
 - **Optional:** （無）
 - **Key columns:** securities_trader, price, buy, sell, securities_trader_id, stock_id, date
-- **描述:** 分點進出（單日，按券商分點列出買賣）
+- **描述:** 分點進出（單日，按券商分點列出買賣）。資料區間 2021-06-30 ~ now，更新時間星期一至五 18:00；已知缺漏 2022-10-31 ~ 2022-11-03（上櫃不完整）、2023-01-11（僅缺上櫃）
 - **興櫃自營商 `price=0`（正常，非缺失）:** 興櫃股票（`TaiwanStockInfo` type=`emerging`）的推薦證券商兼造市（自營商，`securities_trader_id` 結尾為 `T`），雙向報價橫跨多個價位、無單一代表成交均價，故該分點列 `price` 顯示為 `0`（`buy`／`sell` 股數仍為正確值）。此為興櫃市場結構特性，非資料缺失或錯誤；同一檔興櫃的一般券商分點、以及上市櫃各分點（含自營商）皆有正常成交價。若地端回測會除以 `price`，可過濾 `price>0` 或排除結尾 `T` 的分點列。
 - **分點買進合計 ≠ 賣出合計（正常，非缺漏）:** 來源資料本身即有部分個股（每日約數十檔、幾乎都是上市）分點買進合計與賣出合計不相等，FinMind 與來源一致，請勿自行平衡或補值；本資料不含鉅額交易。需要當日一般交易（不含鉅額）總量時，以 `TaiwanStockPrice.Trading_Volume` 減去 `TaiwanStockBlockTrade` 鉅額成交量為準，不要以分點合計反推
+- **興櫃一般分點買賣金額合計 ≠ 成交金額（正常）:** 推薦證券商之間互相成交不會出現在一般分點（分點合計偏少）；系統外議價交易會列在分點資料但不計入 `TaiwanStockPrice` 成交金額（分點合計偏多）。FinMind 與櫃買中心興櫃買賣日報表一致
 - **Bulk download (Sponsor Pro):** `GET /api/v4/storage_objects?dataset=TaiwanStockTradingDailyReport&date=YYYY-MM-DD` 一次取整日全市場分點 parquet（signed URL，免逐檔查詢）；SDK `taiwan_stock_trading_daily_report(date='YYYY-MM-DD', use_object=True)`。此整日下載限 **Sponsor Pro**
 
 ### TaiwanStockWarrantTradingDailyReport
@@ -288,7 +291,7 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Required:** `data_id` (權證代號), `date`
 - **Optional:** （無）
 - **Key columns:** securities_trader, price, buy, sell, securities_trader_id, stock_id, date
-- **描述:** 權證分點進出（單日）
+- **描述:** 權證分點進出（單日）；資料區間 2023-06-21 ~ now，更新時間星期一至五 18:00
 
 ### TaiwanStockGovernmentBankBuySell
 - **Endpoint:** `/api/v4/data`
@@ -296,7 +299,7 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Required:** `dataset=TaiwanStockGovernmentBankBuySell`, `data_id` (股票代號), `start_date`
 - **Optional:** `end_date`
 - **Key columns:** date, stock_id, buy_amount, sell_amount, buy, sell, bank_name
-- **描述:** 八大行庫買賣
+- **描述:** 八大行庫買賣；資料區間 2021-06-30 ~ now，更新時間星期一至五 18:30。`bank_name` 共 9 種：合庫、華南、彰銀、第一、兆豐、臺銀、土銀、台企銀，以及 `八大官股`（八家行庫合計，等於同日同股八家各列加總；彙總時請避免與個別行庫重複計算）
 
 ### TaiwanTotalExchangeMarginMaintenance
 - **Endpoint:** `/api/v4/data`
@@ -318,10 +321,11 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 ### TaiwanStockTradingDailyReportSecIdAgg
 - **Endpoint:** `/api/v4/taiwan_stock_trading_daily_report_secid_agg`（dedicated）
 - **Tier:** Sponsor
-- **Required:** `data_id` (股票代號), `start_date`
-- **Optional:** `end_date`
+- **Required:** `data_id` (股票代號), `securities_trader_id` (券商分點代號), `start_date`, `end_date`（缺少任一 id 回 HTTP 400，原因見回應 `detail`）
+- **Optional:** （無）
 - **Key columns:** securities_trader, securities_trader_id, stock_id, date, buy_volume, sell_volume, buy_price, sell_price
-- **描述:** 券商分點統計（區間 aggregation；2021-06-30 起）
+- **描述:** 券商分點統計（每日每股每分點的買賣股數與均價；2021-06-30 起，更新時間星期一至五 18:30）
+- **Bulk download (Sponsor Pro):** `GET /api/v4/storage_objects?dataset=TaiwanStockTradingDailyReportSecIdAgg&date=YYYY-MM-DD` 一次取當日所有股票、所有券商分點的 parquet（signed URL）；SDK `taiwan_stock_trading_daily_report_secid_agg(start_date='YYYY-MM-DD', use_object=True)`。**歷史整日檔案皆可下載**，最早 2021-06-30，非交易日無檔案；資料依 stock_id、securities_trader_id 排序。此整日下載限 **Sponsor Pro**
 
 ### TaiwanStockDispositionSecuritiesPeriod
 - **Endpoint:** `/api/v4/data`
@@ -337,7 +341,7 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Required:** `dataset=TaiwanStockBlockTrade`, `data_id` (股票代號), `start_date`
 - **Optional:** `end_date`
 - **Key columns:** date, stock_id, trade_type, price, volume, trading_money
-- **描述:** 鉅額交易日成交資訊（逐筆，含交易別、成交價量金額）；資料區間 2005-04-04 ~ now
+- **描述:** 鉅額交易日成交資訊（逐筆，含交易別、成交價量金額）；資料區間 2005-04-04 ~ now。含上市「股票組合」鉅額交易；同日同股同價同量的多筆成交每筆各列一列，請勿去重
 
 ### TaiwanStockBlockTradingDailyReport
 - **Endpoint:** `/api/v4/data`
@@ -395,6 +399,14 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Key columns:** date, industry, sub_industry, stock_count, trading_volume, trading_money, trading_money_pct
 - **描述:** 台股產業鏈資金流向；依 TaiwanStockIndustryChain 的 industry / sub_industry 彙總每日個股成交，資料區間 1992-01-04 ~ now。單次只提供一天（帶了與 start_date 不同的 end_date 會回錯誤）；sub_industry 為空字串的列是該產業鏈總計（成分股不重複計算，不等於子產業列加總）；trading_money_pct 分母為當日全市場個股成交金額（排除 ETF / ETN / 受益證券 / 存託憑證），一股可屬多條產業鏈故各產業鏈佔比加總會超過 100%
 
+### TaiwanStockBrokerDailyConcentration
+- **Endpoint:** `/api/v4/data`
+- **Tier:** Sponsor
+- **Required:** `dataset=TaiwanStockBrokerDailyConcentration`, `data_id` (股票代號), `start_date`
+- **Optional:** `end_date`
+- **Key columns:** date, stock_id, top_k, top_buy_volume, top_sell_volume
+- **描述:** 每日個股主力集中度；資料區間 2021-06-30 ~ now，星期一至五盤後更新。由當日券商分點資料（TaiwanStockTradingDailyReport）算各券商淨買超（買 − 賣），取前 `top_k` 大買超加總為 `top_buy_volume`、前 `top_k` 大賣超加總為 `top_sell_volume`（正值）；`top_k` 目前固定 15；單位為**股**（非張）
+
 ## 台股 - 基本面
 
 ### TaiwanStockFinancialStatements
@@ -419,7 +431,7 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Required:** `dataset=TaiwanStockCashFlowsStatement`, `data_id` (股票代號), `start_date`
 - **Optional:** `end_date`
 - **Key columns:** date, stock_id, type, value, origin_name
-- **描述:** 現金流量表
+- **描述:** 現金流量表。`type` 含 `EffectOfExchangeRateChangesOnCashAndCashEquivalents`（匯率變動對現金及約當現金之影響，2013-03-31 起）
 
 ### TaiwanStockDividend
 - **Endpoint:** `/api/v4/data`
@@ -544,7 +556,9 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Required:** `dataset=TaiwanOptionTick`, `data_id` (選擇權代號), `start_date` (single day)
 - **Optional:** （無）
 - **Key columns:** ExercisePrice, PutCall, contract_date, date, option_id, price, volume
-- **描述:** 選擇權逐筆交易明細。必須帶 `data_id`，不帶 `data_id` 查整日全商品不開放，請改用下方整日下載
+- **描述:** 選擇權逐筆交易明細。必須帶 `data_id`，不帶 `data_id` 查整日全商品不開放，請改用下方整日下載。只有成交價與量，**沒有內外盤欄位**
+- **volume 計量:** 逐筆採「雙邊」計量，同序列同時同價的 volume 加總必為偶數（常見兩筆相同紀錄，非重複）。逐序列核對：逐筆 volume 加總 ＝ 2 × `TaiwanOptionDaily` volume − 2 × 議價申報鉅額交易口數（議價申報鉅額不在逐筆中但計入日成交量）
+- **夜盤交易日歸屬:** 交易日 D 的夜盤（after_market）＝前一營業日 15:00 ~ D 當日 05:00。逐筆 00:00–05:00 屬 D 的夜盤、08:45–13:45 屬 D 的一般時段（position）、15:00–24:00 屬**次一交易日**的夜盤
 - **Bulk download (Sponsor Pro):** `GET /api/v4/storage_objects?dataset=TaiwanOptionTick&date=YYYY-MM-DD` 一次取整日全市場 parquet（signed URL，免逐檔查詢）；SDK `taiwan_option_tick(date='YYYY-MM-DD', use_object=True)`。**歷史整日檔案皆可下載**，最早 2011-01-03。此整日下載限 **Sponsor Pro**（與上方逐檔查詢的 Backer tier 不同）
 
 ### TaiwanFuturesInstitutionalInvestors
