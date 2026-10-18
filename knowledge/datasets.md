@@ -10,6 +10,7 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Free(w/ data_id)：** 帶 `data_id`（單一標的）為 Free；省略 `data_id` 想查全市場需 Backer 以上
 - **Backer：** 需 Backer 方案以上
 - **Sponsor：** 需 Sponsor 方案以上（Sponsor Pro 亦可存取）
+- **Sponsor Pro：** 整日全市場檔（`/api/v4/storage_objects`，MCP tool `download_storage_object`）限 Sponsor Pro
 
 「single day」字樣表示該 dataset 僅吃 `start_date`，不支援 `end_date` 區間。
 
@@ -276,7 +277,7 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 ### TaiwanStockTradingDailyReport
 - **Endpoint:** `/api/v4/taiwan_stock_trading_daily_report`（dedicated）
 - **Tier:** Sponsor
-- **Required:** `data_id` (股票代號), `date` (注意是 `date`，不是 `start_date`)
+- **Required:** `data_id` (股票代號) 或 `securities_trader_id` (券商分點代號，查該分點當日所有個股) 擇一, `date` (注意是 `date`，不是 `start_date`)
 - **Optional:** （無）
 - **Key columns:** securities_trader, price, buy, sell, securities_trader_id, stock_id, date
 - **描述:** 分點進出（單日，按券商分點列出買賣）。資料區間 2021-06-30 ~ now，更新時間星期一至五 18:00；已知缺漏 2022-10-31 ~ 2022-11-03（上櫃不完整）、2023-01-11（僅缺上櫃）
@@ -288,7 +289,7 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 ### TaiwanStockWarrantTradingDailyReport
 - **Endpoint:** `/api/v4/taiwan_stock_warrant_trading_daily_report`（dedicated）
 - **Tier:** Sponsor
-- **Required:** `data_id` (權證代號), `date`
+- **Required:** `data_id` (權證代號) 或 `securities_trader_id` (券商分點代號) 擇一, `date`
 - **Optional:** （無）
 - **Key columns:** securities_trader, price, buy, sell, securities_trader_id, stock_id, date
 - **描述:** 權證分點進出（單日）；資料區間 2023-06-21 ~ now，更新時間星期一至五 18:00

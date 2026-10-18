@@ -33,8 +33,10 @@
     { "name": "query_dataset", "description": "查詢 FinMind dataset（股價、財報、籌碼、期權、總經等）" },
     { "name": "list_datasets", "description": "列出可查詢的 dataset 與所需會員等級" },
     { "name": "get_stock_info", "description": "查詢股票代號、名稱與產業別" },
-    { "name": "query_trading_daily_report", "description": "查詢個股單日分點進出" },
-    { "name": "get_pricing", "description": "查詢 FinMind 會員方案與價格" }
+    { "name": "query_trading_daily_report", "description": "查詢單日分點進出（依個股或券商分點）" },
+    { "name": "get_pricing", "description": "查詢 FinMind 會員方案與價格" },
+    { "name": "query_endpoint", "description": "查詢專屬 endpoint：分點統計、權證分點、即時快照、datalist、欄位翻譯" },
+    { "name": "download_storage_object", "description": "下載整日全市場 parquet 到本機並回傳摘要（Sponsor Pro）" }
   ],
   "user_config": {
     "finmind_token": {

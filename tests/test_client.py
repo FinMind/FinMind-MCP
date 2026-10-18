@@ -85,19 +85,42 @@ async def test_query_dataset_401_raises_auth_error():
 
 @pytest.mark.asyncio
 @respx.mock
-async def test_query_dataset_402_raises_payment_error():
+async def test_query_dataset_402_is_rate_limit_not_tier():
+    # FinMind 的 402 是「請求數達上限」；方案不足是 400 + "Your level is ..."。
     respx.get("https://api.finmindtrade.com/api/v4/data").mock(
         return_value=httpx.Response(
-            402, json={"status": 402, "msg": "sponsor required"}
+            402,
+            json={"status": 402, "msg": "Requests reach the upper limit. https://finmindtrade.com/"},
         )
     )
     client = FinMindClient(token="t")
-    with pytest.raises(PaymentRequiredError):
+    with pytest.raises(RateLimitError) as info:
         await client.query_dataset(
             dataset="TaiwanStockBlockTrade",
             data_id="2330",
             start_date="2026-05-10",
         )
+    assert "upper limit" in info.value.detail
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_query_dataset_level_too_low_raises_payment_error():
+    msg = (
+        "Your level is free. Please update your user level. "
+        "Detail information:https://finmindtrade.com/analysis/#/Sponsor/sponsor"
+    )
+    respx.get("https://api.finmindtrade.com/api/v4/data").mock(
+        return_value=httpx.Response(400, json={"msg": msg, "status": 400})
+    )
+    client = FinMindClient(token="t")
+    with pytest.raises(PaymentRequiredError) as info:
+        await client.query_dataset(
+            dataset="TaiwanStockBlockTrade",
+            data_id="2330",
+            start_date="2026-05-10",
+        )
+    assert info.value.detail == msg
 
 
 @pytest.mark.asyncio
@@ -192,5 +215,16 @@ async def test_query_trading_daily_report():
     assert len(rows) == 1
     assert rows[0]["stock_id"] == "2330"
     params = dict(route.calls.last.request.url.params)
-    assert params["data_id"] == "2330"
-    assert params["date"] == "2026-05-10"
+    assert params == {"data_id": "2330", "date": "2026-05-10"}
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_query_trading_daily_report_by_broker():
+    route = respx.get(
+        "https://api.finmindtrade.com/api/v4/taiwan_stock_trading_daily_report"
+    ).mock(return_value=httpx.Response(200, json={"data": [{"stock_id": "0050"}], "status": 200}))
+    client = FinMindClient(token="t")
+    await client.query_trading_daily_report(date="2024-07-01", securities_trader_id="1020")
+    params = dict(route.calls.last.request.url.params)
+    assert params == {"securities_trader_id": "1020", "date": "2024-07-01"}

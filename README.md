@@ -33,12 +33,42 @@ pipx install finmind-mcp
 
 > **Windows 使用者**：請先看 [install/windows.md](install/windows.md) —— 含 `uv`/`pipx` 安裝、PowerShell 環境變數、各 host 設定檔的 Windows 路徑，以及「host 找不到 `finmind-mcp` 指令」等常見問題。
 
+## Tools
+
+| Tool | 用途 | 對應 API |
+|---|---|---|
+| `query_dataset` | 通用查詢（`dataset` + `data_id` + 日期） | `/api/v4/data` |
+| `list_datasets` | 列出所有 dataset、所需方案與說明（離線） | 內建 `knowledge/datasets.md` |
+| `get_stock_info` | 台股代號／名稱／產業 | `/api/v4/data?dataset=TaiwanStockInfo` |
+| `query_trading_daily_report` | 單日分點進出（依個股 `data_id` 或券商 `securities_trader_id`） | `/api/v4/taiwan_stock_trading_daily_report` |
+| `get_pricing` | 方案價格與授權（離線、不需 token） | 內建 `knowledge/pricing.md` |
+| `query_endpoint` | 其他專屬 endpoint：分點統計 SecIdAgg、權證分點、股／期／選即時快照、`datalist`、`translation` | `/api/v4/<endpoint>`（allowlist） |
+| `download_storage_object` | 整日全市場 parquet（Sponsor Pro）下載到本機，回傳路徑、筆數、欄位、前幾列，可依代號／分點過濾 | `/api/v4/storage_objects` |
+
+權限不足時，工具會說明該 dataset／endpoint 需要哪個方案（Backer / Sponsor / Sponsor Pro）、附上 API 回應原文與升級連結；參數錯誤時同樣附上 API 原文。
+
+### 整日檔下載（`download_storage_object`）
+
+- 檔案存到 `FINMIND_DOWNLOAD_DIR`；沒設時預設為使用者快取目錄下的 `finmind-mcp/storage_objects/`（Linux `~/.cache/…`、macOS `~/Library/Caches/…`、Windows `%LOCALAPPDATA%\…`）。同一天同一 dataset 再查會直接用本機檔，`refresh: true` 才重抓。
+- 整日檔動輒數十 MB，工具**只回摘要**（最多 500 列），完整資料請用程式讀本機檔（`pandas.read_parquet(path)`）。
+- 讀 parquet 需要 `pyarrow`（wheel 約 29–54 MB），是選用 extra，預設不裝；沒裝時仍會下載並回傳路徑，並提示安裝方式：
+
+  ```bash
+  uvx --from "finmind-mcp[parquet]" finmind-mcp      # host 設定的 args 改成 ["--from", "finmind-mcp[parquet]", "finmind-mcp"]
+  pipx install "finmind-mcp[parquet]"
+  ```
+
+  Claude Desktop 擴充套件（`.mcpb`）已內含 pyarrow，不需另外處理。
+
 ## 範例查詢
 
 - 「台積電最近一個月股價」
 - 「2330 三大法人近一週買賣」
 - 「台積電今年每月營收」
 - 「美元對台幣匯率近半年走勢」
+- 「合庫（1020）7/1~7/5 每天買賣台積電多少張」（分點統計）
+- 「台積電跟加權指數現在多少」（即時快照）
+- 「下載 10/16 全市場分 K 整日檔，給我台積電的部分」（整日檔，Sponsor Pro）
 
 完整範例見 [`knowledge/examples.md`](knowledge/examples.md)。
 
@@ -47,7 +77,7 @@ pipx install finmind-mcp
 ```
 FinMind-MCP/
 ├── src/finmind_mcp/      # MCP server source
-├── tests/                # pytest 31 個測試
+├── tests/                # pytest 單元測試（全 mock）
 ├── smoke.py              # stdio smoke test
 ├── knowledge/            # SSOT markdown（dataset、行為規則、錯誤腳本、Q&A）
 ├── chatgpt/              # Custom GPT artifacts（OpenAPI + build script）
@@ -61,8 +91,9 @@ FinMind-MCP/
 ```bash
 uv venv --python 3.10
 source .venv/bin/activate
-uv pip install -e ".[dev]"
-uv run pytest -v          # 31 tests
+uv pip install -e ".[dev]"   # dev extra 含 respx 與 pyarrow
+uv run pytest -v
+FINMIND_TOKEN=... uv run python regression/runner.py   # 打 live API 的契約測試
 uv run python smoke.py    # stdio integration check
 ```
 
