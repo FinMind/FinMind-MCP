@@ -1,4 +1,4 @@
-本文件列出 FinMind 支援的 dataset，涵蓋台股技術面 / 籌碼面 / 基本面 / 衍生性商品 / 即時資料 / 可轉債 / 國際市場 / 全球總經，共約 108 個。
+本文件列出 FinMind 支援的 dataset，涵蓋台股技術面 / 籌碼面 / 基本面 / 衍生性商品 / 即時資料 / 可轉債 / 國際市場 / 全球總經，共約 109 個。
 ChatGPT Custom GPT 與 MCP server 共用此文件作為 single source of truth。
 所有參數命名以 FinMind v4 API（`/api/v4/data`，少數 dedicated endpoint 另列）為準；日期格式一律 `YYYY-MM-DD`。
 
@@ -55,6 +55,14 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Optional:** `end_date`
 - **Key columns:** date, stock_id, Trading_Volume, Trading_money, open, max, min, close, spread, Trading_turnover
 - **描述:** 個股日成交資料（開高低收、成交量、漲跌）
+
+### TaiwanStockAfterHoursFixedPriceTrading
+- **Endpoint:** `/api/v4/data`
+- **Tier:** Backer
+- **Required:** `dataset=TaiwanStockAfterHoursFixedPriceTrading`, `start_date`
+- **Optional:** `data_id` (股票代號；省略時 `start_date` 為 single day，取得該日所有股票), `end_date`（帶 `data_id` 時）
+- **Key columns:** date, stock_id, market, price, volume, trading_turnover, trading_money, unfilled_buy_volume, unfilled_sell_volume
+- **描述:** 每檔證券每日盤後定價交易（以當日收盤價撮合）的成交結果。資料區間 **2004-12-24 ~ now**（上市 2004-12-24 起、上櫃 2011-01-03 起），星期一至五 15:00 更新。`market`：twse＝上市、tpex＝上櫃。`volume`、`unfilled_buy_volume`、`unfilled_sell_volume` 單位為**張**（外幣 ETF 依其交易單位），與 `TaiwanStockPrice.Trading_Volume`（股）不同；`unfilled_*` 為定價撮合後剩餘的買進／賣出未成交量。**含當日無盤後成交的列**（`volume`、`trading_turnover`、`trading_money` 皆為 0），此時上市的 `price` 為當日收盤價、上櫃為 0；只看實際成交請篩 `volume > 0`
 
 ### TaiwanStockPriceAdj
 - **Endpoint:** `/api/v4/data`
