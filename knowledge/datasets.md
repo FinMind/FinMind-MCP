@@ -281,6 +281,7 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Optional:** （無，回傳全市場券商清單）
 - **Key columns:** securities_trader_id, securities_trader, date, address, phone
 - **描述:** 證券商代號與基本資訊
+- **名稱以券商名錄為準，可能與分點資料不同:** `securities_trader` 採證交所券商名錄的正式名稱，可能與 `TaiwanStockTradingDailyReport` 上的分點名稱不同（例：`9853` 在此為「元大-市府」，在分點資料為「元大南屯」）。用戶以分點名稱詢問時，若此表搜尋不到，不代表沒有該分點；請以 `securities_trader_id` 查詢與對應，不要用名稱比對
 
 ### TaiwanStockTradingDailyReport
 - **Endpoint:** `/api/v4/taiwan_stock_trading_daily_report`（dedicated）
@@ -292,6 +293,7 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **興櫃自營商 `price=0`（正常，非缺失）:** 興櫃股票（`TaiwanStockInfo` type=`emerging`）的推薦證券商兼造市（自營商，`securities_trader_id` 結尾為 `T`），雙向報價橫跨多個價位、無單一代表成交均價，故該分點列 `price` 顯示為 `0`（`buy`／`sell` 股數仍為正確值）。此為興櫃市場結構特性，非資料缺失或錯誤；同一檔興櫃的一般券商分點、以及上市櫃各分點（含自營商）皆有正常成交價。若地端回測會除以 `price`，可過濾 `price>0` 或排除結尾 `T` 的分點列。
 - **分點買進合計 ≠ 賣出合計（正常，非缺漏）:** 來源資料本身即有部分個股（每日約數十檔、幾乎都是上市）分點買進合計與賣出合計不相等，FinMind 與來源一致，請勿自行平衡或補值；本資料不含鉅額交易。需要當日一般交易（不含鉅額）總量時，以 `TaiwanStockPrice.Trading_Volume` 減去 `TaiwanStockBlockTrade` 鉅額成交量為準，不要以分點合計反推
 - **興櫃一般分點買賣金額合計 ≠ 成交金額（正常）:** 推薦證券商之間互相成交不會出現在一般分點（分點合計偏少）；系統外議價交易會列在分點資料但不計入 `TaiwanStockPrice` 成交金額（分點合計偏多）。FinMind 與櫃買中心興櫃買賣日報表一致
+- **分點名稱可能與證券商資訊表不同（請以代號對應）:** 上市、上櫃股票的 `securities_trader` 沿用各市場每日買賣日報表上的分點簡稱（興櫃股票則與 `TaiwanSecuritiesTraderInfo` 相同）；分點更名或遷址後日報表可能沿用舊名，上市與上櫃簡稱也可能不同。例：`9853` 在此為「元大南屯」、在證券商資訊表為「元大-市府」；「元大高雄」在上市股票是 `989F`（證券商資訊表「元大-三民」）、在上櫃股票是 `981m`（證券商資訊表「元大-高雄」）。因此同一 `securities_trader_id` 同一天在不同股票上可能出現不同名稱；篩選、彙總、對應一律用 `securities_trader_id`，不要用名稱
 - **Bulk download (Sponsor Pro):** `GET /api/v4/storage_objects?dataset=TaiwanStockTradingDailyReport&date=YYYY-MM-DD` 一次取整日全市場分點 parquet（signed URL，免逐檔查詢）；SDK `taiwan_stock_trading_daily_report(date='YYYY-MM-DD', use_object=True)`。此整日下載限 **Sponsor Pro**
 
 ### TaiwanStockWarrantTradingDailyReport
