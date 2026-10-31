@@ -220,7 +220,7 @@ def _install(monkeypatch, **kwargs):
 
 def test_every_endpoint_is_in_tool_enum():
     tool = next(t for t in tools.tool_definitions() if t.name == "query_endpoint")
-    assert tool.inputSchema["properties"]["endpoint"]["enum"] == list(
+    assert tool.input_schema["properties"]["endpoint"]["enum"] == list(
         endpoints.ENDPOINTS
     )
     for name in endpoints.ENDPOINTS:

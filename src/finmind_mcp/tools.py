@@ -80,7 +80,7 @@ def tool_definitions() -> list[Tool]:
                 " start_date（YYYY-MM-DD），回傳 markdown 表格。超過 500 列會截斷"
                 "並標註總列數。"
             ),
-            inputSchema={
+            input_schema={
                 "type": "object",
                 "properties": {
                     "dataset": {
@@ -109,7 +109,7 @@ def tool_definitions() -> list[Tool]:
                 "列出 FinMind 支援的所有 dataset（讀取內建知識庫，不需連線）。"
                 "依分類回傳 dataset 名稱、會員層級與說明的 markdown 條列。"
             ),
-            inputSchema={"type": "object", "properties": {}},
+            input_schema={"type": "object", "properties": {}},
         ),
         Tool(
             name="get_stock_info",
@@ -117,7 +117,7 @@ def tool_definitions() -> list[Tool]:
                 "查詢台股代號 / 中文名 / 產業別總覽（呼叫 TaiwanStockInfo）。"
                 "可選 stock_id 指定單一標的；未提供時回傳全市場清單（會截斷）。"
             ),
-            inputSchema={
+            input_schema={
                 "type": "object",
                 "properties": {
                     "stock_id": {
@@ -134,7 +134,7 @@ def tool_definitions() -> list[Tool]:
                 "必填單一日期 date（非區間），並帶股票代號 data_id 或券商分點代號"
                 " securities_trader_id（擇一或都帶）。需要 Sponsor 等級。"
             ),
-            inputSchema={
+            input_schema={
                 "type": "object",
                 "properties": {
                     "data_id": {
@@ -161,7 +161,7 @@ def tool_definitions() -> list[Tool]:
                 "API 每小時上限、各方案新增資料集、商業授權規則與購買連結。"
                 "使用者問價格、費用、方案差異、升級或商業用途時使用。"
             ),
-            inputSchema={"type": "object", "properties": {}},
+            input_schema={"type": "object", "properties": {}},
         ),
         _query_endpoint_tool(),
         _download_storage_object_tool(),
@@ -183,7 +183,7 @@ def _query_endpoint_tool() -> Tool:
     return Tool(
         name="query_endpoint",
         description="\n".join(lines),
-        inputSchema={
+        input_schema={
             "type": "object",
             "properties": {
                 "endpoint": {
@@ -227,7 +227,7 @@ def _download_storage_object_tool() -> Tool:
             "完整資料請用程式讀取回傳的本機路徑。一次一個 dataset、一個交易日；"
             "同一檔已下載過會直接用本機快取。"
         ),
-        inputSchema={
+        input_schema={
             "type": "object",
             "properties": {
                 "dataset": {
@@ -287,7 +287,7 @@ def _download_financial_report_tool() -> Tool:
             "部分頁面（常見是主要報表頁）是影像沒有文字層，數字請改用 query_dataset 查 "
             "TaiwanStockFinancialStatements／TaiwanStockBalanceSheet／TaiwanStockCashFlowsStatement。"
         ),
-        inputSchema={
+        input_schema={
             "type": "object",
             "properties": {
                 "data_id": {"type": "string", "description": "股票代號，例如 2330"},
