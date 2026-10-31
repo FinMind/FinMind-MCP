@@ -10,7 +10,7 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Free(w/ data_id)：** 帶 `data_id`（單一標的）為 Free；省略 `data_id` 想查全市場需 Backer 以上
 - **Backer：** 需 Backer 方案以上
 - **Sponsor：** 需 Sponsor 方案以上（Sponsor Pro 亦可存取）
-- **Sponsor Pro：** 整日全市場檔（`/api/v4/storage_objects`，MCP tool `download_storage_object`）限 Sponsor Pro
+- **Sponsor Pro：** 整日全市場檔（`/api/v4/storage_objects`，MCP tool `download_storage_object`）與財報／年報 PDF（MCP tool `download_financial_report`）限 Sponsor Pro
 
 「single day」字樣表示該 dataset 僅吃 `start_date`，不支援 `end_date` 區間。
 
@@ -443,6 +443,14 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Optional:** `end_date`
 - **Key columns:** date, stock_id, type, value, origin_name
 - **描述:** 現金流量表。`type` 含 `EffectOfExchangeRateChangesOnCashAndCashEquivalents`（匯率變動對現金及約當現金之影響，2013-03-31 起）
+
+### TaiwanStockFinancialReportFile
+- **Endpoint:** `/api/v4/storage_objects`（MCP tool `download_financial_report`）
+- **Tier:** Sponsor Pro
+- **Required:** `dataset=TaiwanStockFinancialReportFile`, `data_id` (股票代號), `year` (西元年), `quarter` (1～4), `report_category` (`financial_report` 財務報告／`annual_report` 股東會年報，年報只有 `quarter=4`)
+- **Optional:** —
+- **Key columns:** 回傳 PDF 檔（少數早期為 Word 檔），不是表格
+- **描述:** 上市櫃公司財報與股東會年報原始檔（財報 2013Q1 起、年報 2013 年度起）。附註裡的營收細分（產品、地區、技術平台、製程）、存貨組成、轉投資處分、資本承諾等只在 PDF 裡；主要報表數字請用 TaiwanStockFinancialStatements／TaiwanStockBalanceSheet／TaiwanStockCashFlowsStatement。部分 PDF 的主要報表頁是影像、部分年報文字層損壞，工具會標出這些頁面
 
 ### TaiwanStockDividend
 - **Endpoint:** `/api/v4/data`

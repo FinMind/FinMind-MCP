@@ -31,7 +31,7 @@ _TIER_PATTERN = re.compile(r"update your user level|your level is", re.IGNORECAS
 _RATE_LIMIT_PATTERN = re.compile(r"upper limit", re.IGNORECASE)
 _TOKEN_PATTERN = re.compile(r"token is illegal", re.IGNORECASE)
 
-ParamValue = Union[str, list[str]]
+ParamValue = Union[str, int, list[str]]
 
 
 class FinMindClient:
@@ -126,12 +126,33 @@ class FinMindClient:
 
         The signed URL is short-lived (minutes), so download it right away.
         """
+        return await self._storage_objects_redirect({"dataset": dataset, "date": date})
+
+    async def financial_report_url(
+        self, data_id: str, year: int, quarter: int, report_category: str
+    ) -> str:
+        """Signed URL for one TaiwanStockFinancialReportFile document.
+
+        Same `/api/v4/storage_objects` endpoint, but located by
+        data_id + year + quarter + report_category instead of a date.
+        """
+        return await self._storage_objects_redirect(
+            {
+                "dataset": "TaiwanStockFinancialReportFile",
+                "data_id": data_id,
+                "year": year,
+                "quarter": quarter,
+                "report_category": report_category,
+            }
+        )
+
+    async def _storage_objects_redirect(self, params: dict[str, ParamValue]) -> str:
         url = f"{self.base_url}/v4/storage_objects"
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.get(
                     url,
-                    params={"dataset": dataset, "date": date},
+                    params=params,
                     headers=self._headers(),
                     follow_redirects=False,
                 )

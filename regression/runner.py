@@ -186,6 +186,12 @@ CASES: list[Case] = [
         Check(columns=("minute", "close"), contains=("總筆數", "符合", ".parquet"), min_rows=10),
         note="需 Sponsor Pro token；等級不足時應回「需要 Sponsor Pro」與升級連結（見 regression/README.md）。",
     ),
+    Case(
+        "R22", "財報 PDF 依關鍵字讀附註（TaiwanStockFinancialReportFile）",
+        [Call("download_financial_report", {"data_id": "2330", "year": 2026, "quarter": 2, "keyword": "在製品"})],
+        Check(contains=("總頁數", "在製品", ".pdf")),
+        note="需 Sponsor Pro token；等級不足時應回「財報 PDF 需要 Sponsor Pro」與升級連結。",
+    ),
 ]
 
 

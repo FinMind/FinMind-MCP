@@ -495,3 +495,18 @@
 > 全市場整日檔下載需要 **Sponsor Pro** 方案，您目前的方案無法使用。升級方案：https://finmindtrade.com/analysis/#/Sponsor/sponsor（升級後 Token 不用換）。
 >
 > 若只需要台積電的逐筆，Backer 以上就能用 `TaiwanStockPriceTick` 帶 `data_id=2330` 單日查詢，要我改這樣查嗎？
+
+---
+
+### Q26: 讀財報附註（download_financial_report，Sponsor Pro）
+
+**User:** 「台積電 2026 第二季存貨暴增，是成品賣不掉嗎？」
+
+**Tool calls:**
+1. `query_dataset(dataset="TaiwanStockBalanceSheet", data_id="2330", start_date="2025-12-31")` — 先確認存貨金額變化
+2. `download_financial_report(data_id="2330", year=2026, quarter=2, keyword="在製品")` — 三大報表沒有存貨組成，到附註找
+
+**Response:**
+> 存貨從 3,115 億增加到 3,855 億（+24%），但財報附註（第 21 頁「存貨」）拆開看，增加的 744 億裡有 709 億是**在製品**，製成品只多 34 億、原料還減少；當季存貨跌價損失也轉為回升利益。比較像投片增加，而不是成品賣不掉。
+
+不確定在哪一頁時，先不帶 `pages`／`keyword` 呼叫一次看目錄，再依頁次讀。工具標示「沒有文字層」或「文字層損壞」的頁面不要猜內容；主要報表數字改用三大報表 dataset。

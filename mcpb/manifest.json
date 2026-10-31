@@ -36,7 +36,8 @@
     { "name": "query_trading_daily_report", "description": "查詢單日分點進出（依個股或券商分點）" },
     { "name": "get_pricing", "description": "查詢 FinMind 會員方案與價格" },
     { "name": "query_endpoint", "description": "查詢專屬 endpoint：分點統計、權證分點、即時快照、datalist、欄位翻譯" },
-    { "name": "download_storage_object", "description": "下載整日全市場 parquet 到本機並回傳摘要（Sponsor Pro）" }
+    { "name": "download_storage_object", "description": "下載整日全市場 parquet 到本機並回傳摘要（Sponsor Pro）" },
+    { "name": "download_financial_report", "description": "下載上市櫃公司財報／股東會年報 PDF 並回傳目錄或指定頁文字（Sponsor Pro）" }
   ],
   "user_config": {
     "finmind_token": {

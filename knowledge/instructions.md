@@ -64,6 +64,7 @@
 - `/data` — 通用資料查詢
 - dedicated（MCP 用 `query_endpoint`）：`/taiwan_stock_trading_daily_report`、`/taiwan_stock_warrant_trading_daily_report`（`data_id` 或 `securities_trader_id`＋單日 `date`）、`/taiwan_stock_trading_daily_report_secid_agg`（四參數皆必填）、三支 `*_snapshot`、`/datalist`、`/translation`
 - `/storage_objects` — 整日全市場 parquet（Sponsor Pro）；僅 MCP `download_storage_object` 存到本機、回摘要，ChatGPT 不支援
+- 財報 PDF：僅 MCP `download_financial_report`
 
 FinMind 沒有「列出所有 dataset」的 API；完整清單見 `knowledge_bundle.md`。
 
