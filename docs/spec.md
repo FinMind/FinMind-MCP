@@ -215,10 +215,11 @@ Claude.ai / Code / Desktop          Gemini CLI / Cursor / Windsurf
 | `get_pricing` | 方案價格、API 上限、授權規則 | 內建 `knowledge/pricing.md`（無 API、無需 token） |
 | `query_endpoint` | 通用 dedicated endpoint 查詢，`endpoint` 為 allowlist enum，參數依 endpoint 在本地驗證 | `taiwan_stock_trading_daily_report`、`taiwan_stock_warrant_trading_daily_report`、`taiwan_stock_trading_daily_report_secid_agg`、`taiwan_stock_tick_snapshot`、`taiwan_futures_snapshot`、`taiwan_options_snapshot`、`datalist`、`translation` |
 | `download_storage_object` | 整日全市場 parquet 下載到本機，只回摘要（路徑、筆數、schema、前幾列／過濾結果 ≤500 列） | `/api/v4/storage_objects`（Sponsor Pro） |
+| `download_financial_report` | 財報／年報 PDF 下載到本機，回封面＋目錄、指定頁（`pages`）或含關鍵字頁（`keyword`）的文字（≤30,000 字）；影像頁、亂碼頁只標頁碼不回文字 | `/api/v4/storage_objects?dataset=TaiwanStockFinancialReportFile`（Sponsor Pro） |
 
-**Endpoint 範圍：** 只放 FinMind-Doc 公開記載、且 live 驗證過的 endpoint；allowlist 與參數規則集中在 `src/finmind_mcp/endpoints.py`，新增 endpoint 只要加一筆。刻意不放：`/login`（帳密，MCP 一律用 token）、`/health`、`/websocket`（串流）、`storage_objects?dataset=TaiwanStockFinancialReportFile`（Doc 未公開）。
+**Endpoint 範圍：** 只放 FinMind-Doc 公開記載、且 live 驗證過的 endpoint；allowlist 與參數規則集中在 `src/finmind_mcp/endpoints.py`，新增 endpoint 只要加一筆。刻意不放：`/login`（帳密，MCP 一律用 token）、`/health`、`/websocket`（串流）。
 
-**選 `query_endpoint`（單一通用工具）而非每支 endpoint 一個工具的理由：** dedicated endpoint 的參數都是同一組小集合（`data_id` / `securities_trader_id` / `date` / `start_date` / `end_date` / `dataset`），攤平成頂層參數＋`endpoint` enum，LLM 一個 schema 就看得懂；各 endpoint 的必填／擇一規則寫在 tool description 並在本地先驗證（缺參數不浪費 API quota，訊息直接告訴 LLM 缺什麼）。工具數維持少量，避免 host 端工具清單膨脹；`query_trading_daily_report` 為相容舊設定保留。`storage_objects` 回的是檔案不是 JSON，處理流程完全不同，所以獨立成工具。
+**選 `query_endpoint`（單一通用工具）而非每支 endpoint 一個工具的理由：** dedicated endpoint 的參數都是同一組小集合（`data_id` / `securities_trader_id` / `date` / `start_date` / `end_date` / `dataset`），攤平成頂層參數＋`endpoint` enum，LLM 一個 schema 就看得懂；各 endpoint 的必填／擇一規則寫在 tool description 並在本地先驗證（缺參數不浪費 API quota，訊息直接告訴 LLM 缺什麼）。工具數維持少量，避免 host 端工具清單膨脹；`query_trading_daily_report` 為相容舊設定保留。`storage_objects` 回的是檔案不是 JSON，處理流程完全不同，所以獨立成工具；財報 PDF 雖然同一支 endpoint，但參數（年／季／報表種類）與讀取方式（抽 PDF 文字、分頁讀）都和整日 parquet 不同，再獨立成 `download_financial_report`。
 
 **錯誤對照（以 live API 為準）：** 方案不足 = HTTP 400 + `Your level is ... update your user level`；HTTP 402 = 每小時請求數達上限；`Token is illegal.` = 400。工具輸出一律附 API 回應原文（`detail` / `msg`，過長截斷），方案不足時註明所需方案並指向價格頁與 `get_pricing`。
 

@@ -10,7 +10,7 @@ Deliberately NOT exposed:
 - `/login`（需帳號密碼；MCP 一律用 token）
 - `/health`（維運用）、`/websocket`（串流，不適合一問一答的 tool）
 - `storage_objects` 走獨立工具 `download_storage_object`（回檔案，不回 JSON）
-- `storage_objects?dataset=TaiwanStockFinancialReportFile`（FinMind-Doc 未公開記載）
+- `storage_objects?dataset=TaiwanStockFinancialReportFile` 走獨立工具 `download_financial_report`（回 PDF）
 """
 
 from __future__ import annotations
@@ -178,6 +178,13 @@ STORAGE_OBJECT_DATASETS: dict[str, str] = {
 }
 
 STORAGE_OBJECT_TIER = "Sponsor Pro"
+
+# 財報／年報 PDF（storage_objects 依 data_id + year + quarter + report_category 定位）
+FINANCIAL_REPORT_DATASET = "TaiwanStockFinancialReportFile"
+FINANCIAL_REPORT_CATEGORIES = {
+    "financial_report": "財務報告（季報／半年報／年度財報）",
+    "annual_report": "股東會年報（只有 quarter=4）",
+}
 
 # Datasets whose whole-day file carries a `securities_trader_id` column.
 STORAGE_OBJECT_BROKER_DATASETS = frozenset(

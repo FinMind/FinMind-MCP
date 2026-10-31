@@ -44,8 +44,16 @@ pipx install finmind-mcp
 | `get_pricing` | 方案價格與授權（離線、不需 token） | 內建 `knowledge/pricing.md` |
 | `query_endpoint` | 其他專屬 endpoint：分點統計 SecIdAgg、權證分點、股／期／選即時快照、`datalist`、`translation` | `/api/v4/<endpoint>`（allowlist） |
 | `download_storage_object` | 整日全市場 parquet（Sponsor Pro）下載到本機，回傳路徑、筆數、欄位、前幾列，可依代號／分點過濾 | `/api/v4/storage_objects` |
+| `download_financial_report` | 上市櫃公司財報／股東會年報原始 PDF（Sponsor Pro）下載到本機，回傳目錄、指定頁或含關鍵字頁面的文字 | `/api/v4/storage_objects?dataset=TaiwanStockFinancialReportFile` |
 
 權限不足時，工具會說明該 dataset／endpoint 需要哪個方案（Backer / Sponsor / Sponsor Pro）、附上 API 回應原文與升級連結；參數錯誤時同樣附上 API 原文。
+
+### 財報 PDF（`download_financial_report`）
+
+- 給股票代號、西元年、季別（年報只要年份），工具會下載 PDF 並先回**封面與目錄**；AI 接著依目錄用 `pages` 讀附註，或用 `keyword`（例如「存貨」「營業收入」）直接找頁面。不用另外裝讀 PDF 的工具。
+- 營收依產品／地區／技術平台／製程的細分、存貨組成、轉投資處分這類資訊只在財報附註裡，結構化財報資料集沒有。
+- 檔案存在 `finmind-mcp/financial_report_file/` 下（與整日檔同一個快取根目錄），同一份再查直接用本機檔。
+- 一次最多回傳約 30,000 字。部分 PDF 的主要報表頁是影像、部分年報文字層損壞，這些頁面工具會標出來、不回亂碼；主要報表數字請用 `query_dataset` 查三大報表。
 
 ### 整日檔下載（`download_storage_object`）
 

@@ -1,6 +1,6 @@
 """MCP tool implementations and markdown formatting.
 
-Seven tools are exposed:
+Eight tools are exposed:
 
 - `query_dataset`             — generic /api/v4/data query
 - `list_datasets`             — bundled dataset catalog (knowledge/datasets.md)
@@ -11,6 +11,8 @@ Seven tools are exposed:
                                  (allowlist in endpoints.py)
 - `download_storage_object`   — /api/v4/storage_objects whole-day parquet,
                                  saved locally; returns a summary only
+- `download_financial_report` — /api/v4/storage_objects 財報／年報 PDF,
+                                 saved locally; returns 目錄 / 指定頁 / 關鍵字頁文字
 
 Each tool returns a markdown string. `FinMindError` subclasses raised by
 `FinMindClient` are caught and converted into the 繁中 templates from
@@ -29,6 +31,8 @@ from .client import FinMindClient
 from .endpoints import (
     DEDICATED_ONLY_DATASETS,
     ENDPOINTS,
+    FINANCIAL_REPORT_CATEGORIES,
+    FINANCIAL_REPORT_DATASET,
     PARAM_NAMES,
     STORAGE_OBJECT_BROKER_DATASETS,
     STORAGE_OBJECT_DATASETS,
@@ -66,7 +70,7 @@ def _make_client() -> FinMindClient:
 
 
 def tool_definitions() -> list[Tool]:
-    """Return MCP Tool definitions for all seven tools in stable order."""
+    """Return MCP Tool definitions for all eight tools in stable order."""
     return [
         Tool(
             name="query_dataset",
@@ -161,6 +165,7 @@ def tool_definitions() -> list[Tool]:
         ),
         _query_endpoint_tool(),
         _download_storage_object_tool(),
+        _download_financial_report_tool(),
     ]
 
 
@@ -269,6 +274,53 @@ def _download_storage_object_tool() -> Tool:
     )
 
 
+def _download_financial_report_tool() -> Tool:
+    return Tool(
+        name="download_financial_report",
+        description=(
+            "下載台股上市櫃公司的財報或股東會年報原始 PDF（TaiwanStockFinancialReportFile，"
+            "需 Sponsor Pro）到本機，並回傳 PDF 文字：不帶 pages／keyword 時回封面與目錄，"
+            "可據此再用 pages 讀指定頁，或用 keyword 找出含該詞的頁面（例如「存貨」「營業收入」"
+            "「採用權益法之投資」）。財報附註裡的營收細分（產品、地區、技術平台、製程）、"
+            "存貨組成、轉投資處分等資訊只在 PDF 裡，結構化財報資料集沒有。"
+            f"一次最多回傳約 {storage.REPORT_TEXT_LIMIT:,} 字；同一份已下載過會直接用本機快取。"
+            "部分頁面（常見是主要報表頁）是影像沒有文字層，數字請改用 query_dataset 查 "
+            "TaiwanStockFinancialStatements／TaiwanStockBalanceSheet／TaiwanStockCashFlowsStatement。"
+        ),
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "data_id": {"type": "string", "description": "股票代號，例如 2330"},
+                "year": {"type": "integer", "description": "西元年，例如 2026"},
+                "quarter": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 4,
+                    "description": "季別 1～4（第 4 季＝年度財報）；annual_report 一律為 4，可省略",
+                },
+                "report_category": {
+                    "type": "string",
+                    "enum": list(FINANCIAL_REPORT_CATEGORIES),
+                    "description": "financial_report＝財務報告（預設）；annual_report＝股東會年報",
+                },
+                "pages": {
+                    "type": "string",
+                    "description": "只讀這些頁，例如 \"20\"、\"18-25\"、\"3,30-32\"",
+                },
+                "keyword": {
+                    "type": "string",
+                    "description": "只回傳含此關鍵字的頁面，例如「存貨」",
+                },
+                "refresh": {
+                    "type": "boolean",
+                    "description": "true 時忽略本機快取重新下載",
+                },
+            },
+            "required": ["data_id", "year"],
+        },
+    )
+
+
 # --- Dispatch ----------------------------------------------------------------
 
 
@@ -291,6 +343,7 @@ async def dispatch(name: str, arguments: dict[str, Any]) -> str:
         "query_trading_daily_report": _query_trading_daily_report,
         "query_endpoint": _query_endpoint,
         "download_storage_object": _download_storage_object,
+        "download_financial_report": _download_financial_report,
     }
     handler = handlers.get(name)
     if handler is None:
@@ -507,6 +560,80 @@ async def _download_storage_object(client: FinMindClient, args: dict[str, Any]) 
     return "\n".join(lines)
 
 
+async def _download_financial_report(client: FinMindClient, args: dict[str, Any]) -> str:
+    data_id = str(args.get("data_id") or "").strip()
+    if not data_id or not data_id.isalnum():
+        return "缺少或格式錯誤的 `data_id`，請給股票代號，例如 2330。"
+    category = args.get("report_category") or "financial_report"
+    if category not in FINANCIAL_REPORT_CATEGORIES:
+        return (
+            f"不支援的 report_category `{category}`。可用：{', '.join(FINANCIAL_REPORT_CATEGORIES)}。"
+        )
+    try:
+        year = int(args.get("year"))
+        quarter = 4 if category == "annual_report" else int(args.get("quarter") or 0)
+    except (TypeError, ValueError):
+        return "`year` 要是西元年整數（例如 2026），`quarter` 要是 1～4。"
+    if not 1 <= quarter <= 4:
+        return "財務報告要帶 `quarter`（1～4，第 4 季＝年度財報）。"
+
+    cached = None
+    for ext in ("pdf", "doc"):
+        candidate = storage.report_path(data_id, year, quarter, category, ext)
+        if candidate.is_file() and candidate.stat().st_size > 0 and not args.get("refresh"):
+            cached = candidate
+            break
+    if cached is not None:
+        path = cached
+    else:
+        signed_url = await client.financial_report_url(data_id, year, quarter, category)
+        tmp = storage.report_path(data_id, year, quarter, category, "download")
+        await client.download(signed_url, tmp)
+        path = storage.report_path(data_id, year, quarter, category, storage.sniff_extension(tmp))
+        tmp.replace(path)
+    size_mb = path.stat().st_size / 1_000_000
+
+    period = f"{year} 年" if category == "annual_report" else f"{year} 年第 {quarter} 季"
+    kind = "股東會年報" if category == "annual_report" else "財務報告"
+    lines = [f"### {data_id} {period}{kind}"]
+    lines.append(
+        f"- 本機檔案：`{path}`（{size_mb:.1f} MB，"
+        f"{'使用先前下載的本機快取' if cached else '剛下載'}）"
+    )
+    if path.suffix != ".pdf":
+        lines.append("- 此份原始檔不是 PDF（公司上傳的是 Word 檔），請直接開啟上方本機檔案。")
+        return "\n".join(lines)
+
+    try:
+        pages = args.get("pages")
+        info = storage.read_report(path, pages=pages, keyword=args.get("keyword"))
+    except ValueError:
+        return f"`pages` 格式錯誤：`{args.get('pages')}`，請用 \"20\"、\"18-25\" 或 \"3,30-32\"。"
+    lines.append(f"- 總頁數：{info['total_pages']}")
+    if args.get("keyword"):
+        lines.append(f"- 含「{args['keyword']}」的頁面：{[no for no, _ in info['pages']] or '無'}")
+    if info["no_text_pages"]:
+        lines.append(
+            f"- 第 {info['no_text_pages']} 頁沒有文字層（影像），無法抽出文字；"
+            "主要報表數字請改用 query_dataset 查結構化財報資料集。"
+        )
+    if info["garbled_pages"]:
+        lines.append(
+            f"- 第 {info['garbled_pages']} 頁文字層損壞（抽出來是亂碼），未回傳；"
+            "請直接開啟上方本機 PDF 以影像閱讀。"
+        )
+    for no, text in info["pages"]:
+        lines.append(f"\n#### 第 {no} 頁\n{text}")
+    if info["truncated"]:
+        lines.append(
+            f"\n_已達單次上限約 {storage.REPORT_TEXT_LIMIT:,} 字，後面的頁面未回傳；"
+            "請用 pages 縮小範圍或換更精準的 keyword。_"
+        )
+    if not args.get("pages") and not args.get("keyword"):
+        lines.append("\n_以上為封面與目錄。請依目錄頁次用 pages 讀附註，或用 keyword 找特定項目。_")
+    return "\n".join(lines)
+
+
 # --- Formatting --------------------------------------------------------------
 
 
@@ -578,6 +705,8 @@ def _error_target(tool: str, args: dict[str, Any]) -> Optional[str]:
         return args.get("endpoint")
     if tool == "download_storage_object":
         return f"storage_objects:{args.get('dataset')}"
+    if tool == "download_financial_report":
+        return f"storage_objects:{FINANCIAL_REPORT_DATASET}"
     return None
 
 
@@ -609,10 +738,18 @@ def _error_message(exc: FinMindError, target: Optional[str] = None) -> str:
     head: list[str] = []
     if kind == "payment":
         tier = required_tier(target)
-        what = f"`{target.replace('storage_objects:', 'storage_objects 整日檔 ')}`" if target else "此資料"
+        if target == f"storage_objects:{FINANCIAL_REPORT_DATASET}":
+            what = f"財報 PDF（`{FINANCIAL_REPORT_DATASET}`）"
+        else:
+            what = f"`{target.replace('storage_objects:', 'storage_objects 整日檔 ')}`" if target else "此資料"
         need = f"**{tier}** 以上方案" if tier else "更高等級的方案"
         head.append(f"**方案權限不足：** {what} 需要 {need}，您目前的方案無法存取。")
         head.append(f"請升級方案後再試：{PRICING_URL}（可呼叫 `get_pricing` 查看各方案價格與差異）")
+    elif kind == "bad_request" and target == f"storage_objects:{FINANCIAL_REPORT_DATASET}" and getattr(exc, "status", None) == 404:
+        head.append(
+            "**查無這份財報：** 該公司在這一期沒有上傳檔案，或期別尚未公告"
+            "（季報約在季底後 45 天內、年度財報在隔年 3 月底前）。"
+        )
     elif kind == "bad_request" and target and target.startswith("storage_objects") and getattr(exc, "status", None) == 404:
         head.append(
             "**查無整日檔：** 該日沒有檔案，通常是非交易日、早於該 dataset 的資料起始日，"
