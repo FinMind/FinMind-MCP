@@ -1,0 +1,14 @@
+# Claude Desktop 擴充套件（.mcpb）用的執行環境定義。
+# Claude Desktop 啟動時以 `uv run` 依此檔自動準備 Python 與相依套件，使用者不用自己裝。
+# finmind-mcp 的版本由 scripts/build_mcpb.py 在打包時改成與發版 tag 相同，不要手動改。
+[project]
+name = "finmind-mcpb"
+version = "0.0.0"
+requires-python = ">=3.10"
+dependencies = [
+    "finmind-mcp==0.0.0",
+    # download_storage_object 讀整日 parquet 用（finmind-mcp 的 parquet extra）。
+    # Claude Desktop 使用者無法自己加 extra，所以擴充套件直接帶上；首次啟動多下載
+    # 約 29–39 MB（Windows / macOS wheel），之後由 uv 快取。
+    "pyarrow>=14",
+]

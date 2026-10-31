@@ -51,10 +51,270 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DataResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "402":
-          $ref: "#/components/responses/PaymentRequired"
+          $ref: "#/components/responses/RateLimited"
+        "5XX":
+          $ref: "#/components/responses/UpstreamError"
+  /v4/taiwan_stock_trading_daily_report:
+    get:
+      operationId: getTradingDailyReport
+      summary: 分點進出（單日）
+      description: TaiwanStockTradingDailyReport 專屬端點（Sponsor）。帶 data_id 或 securities_trader_id 擇一，加單日 date。
+      parameters:
+        - name: data_id
+          in: query
+          required: false
+          description: 股票代號（與 securities_trader_id 擇一或都帶）。
+          schema:
+            type: string
+        - name: securities_trader_id
+          in: query
+          required: false
+          description: 券商分點代號，例如 1020。
+          schema:
+            type: string
+        - name: date
+          in: query
+          required: true
+          description: 單一日期 YYYY-MM-DD（非區間）。
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 查詢成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          $ref: "#/components/responses/RateLimited"
+        "5XX":
+          $ref: "#/components/responses/UpstreamError"
+  /v4/taiwan_stock_warrant_trading_daily_report:
+    get:
+      operationId: getWarrantTradingDailyReport
+      summary: 權證分點進出（單日）
+      description: TaiwanStockWarrantTradingDailyReport 專屬端點（Sponsor，2023-06-21 起）。data_id（權證代號）或 securities_trader_id 擇一，加單日 date。
+      parameters:
+        - name: data_id
+          in: query
+          required: false
+          description: 權證代號，例如 084655。
+          schema:
+            type: string
+        - name: securities_trader_id
+          in: query
+          required: false
+          description: 券商分點代號，例如 1020。
+          schema:
+            type: string
+        - name: date
+          in: query
+          required: true
+          description: 單一日期 YYYY-MM-DD（非區間）。
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 查詢成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          $ref: "#/components/responses/RateLimited"
+        "5XX":
+          $ref: "#/components/responses/UpstreamError"
+  /v4/taiwan_stock_trading_daily_report_secid_agg:
+    get:
+      operationId: getTradingDailyReportSecIdAgg
+      summary: 券商分點每日統計
+      description: TaiwanStockTradingDailyReportSecIdAgg 專屬端點（Sponsor，2021-06-30 起）。四個參數皆必填。
+      parameters:
+        - name: data_id
+          in: query
+          required: true
+          description: 股票代號。
+          schema:
+            type: string
+        - name: securities_trader_id
+          in: query
+          required: true
+          description: 券商分點代號。
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          required: true
+          description: 起始日 YYYY-MM-DD。
+          schema:
+            type: string
+        - name: end_date
+          in: query
+          required: true
+          description: 結束日 YYYY-MM-DD。
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 查詢成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          $ref: "#/components/responses/RateLimited"
+        "5XX":
+          $ref: "#/components/responses/UpstreamError"
+  /v4/taiwan_stock_tick_snapshot:
+    get:
+      operationId: getStockTickSnapshot
+      summary: 台股即時報價快照
+      description: Sponsor。data_id 為股票代號或 3 碼指數代號（001 加權指數）；省略則回全市場（量大，盡量指定）。
+      parameters:
+        - name: data_id
+          in: query
+          required: false
+          description: 股票代號或指數代號。
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 查詢成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          $ref: "#/components/responses/RateLimited"
+        "5XX":
+          $ref: "#/components/responses/UpstreamError"
+  /v4/taiwan_futures_snapshot:
+    get:
+      operationId: getFuturesSnapshot
+      summary: 期貨即時報價快照
+      description: Sponsor。data_id 為期貨代號（如 TXF）；省略則回全部。
+      parameters:
+        - name: data_id
+          in: query
+          required: false
+          description: 期貨代號。
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 查詢成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          $ref: "#/components/responses/RateLimited"
+        "5XX":
+          $ref: "#/components/responses/UpstreamError"
+  /v4/taiwan_options_snapshot:
+    get:
+      operationId: getOptionsSnapshot
+      summary: 選擇權即時報價快照
+      description: Sponsor。data_id 為契約系列（TXO 月選、TX1~TX5 週三週選、TXU/TXV/TXX/TXY/TXZ 週五週選）。
+      parameters:
+        - name: data_id
+          in: query
+          required: false
+          description: 選擇權契約系列代碼。
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 查詢成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          $ref: "#/components/responses/RateLimited"
+        "5XX":
+          $ref: "#/components/responses/UpstreamError"
+  /v4/datalist:
+    get:
+      operationId: getDataList
+      summary: 列出 dataset 可用的 data_id
+      description: dataset 僅接受 CrudeOilPrices、CurrencyCirculation、ExchangeRate、GovernmentBonds、GovernmentBondsYield、InterestRate、TaiwanExchangeRate。
+      parameters:
+        - name: dataset
+          in: query
+          required: true
+          description: dataset 名稱。
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 查詢成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          $ref: "#/components/responses/RateLimited"
+        "5XX":
+          $ref: "#/components/responses/UpstreamError"
+  /v4/translation:
+    get:
+      operationId: getTranslation
+      summary: 欄位中英對照
+      description: 回傳 {name:[中文], english:[英文]}。dataset 例如 TaiwanStockBalanceSheet、TaiwanStockFinancialStatements、TaiwanStockCashFlowsStatement。
+      parameters:
+        - name: dataset
+          in: query
+          required: true
+          description: dataset 名稱。
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 查詢成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          $ref: "#/components/responses/RateLimited"
         "5XX":
           $ref: "#/components/responses/UpstreamError"
 components:
@@ -73,11 +333,14 @@ components:
           type: string
           example: success
         data:
-          type: array
-          description: 結果列陣列，欄位依 dataset 而異。
-          items:
-            type: object
-            additionalProperties: true
+          description: >-
+            結果。多數端點為列陣列（欄位依 dataset 而異）；datalist 為字串陣列；
+            translation 為 {name, english} 物件。
+          oneOf:
+            - type: array
+              items: {}
+            - type: object
+              additionalProperties: true
     Error:
       type: object
       properties:
@@ -85,6 +348,8 @@ components:
           type: integer
         msg:
           type: string
+        detail:
+          description: 參數驗證錯誤（字串或陣列）
   responses:
     Unauthorized:
       description: Token 無效或未設定
@@ -92,8 +357,15 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Error"
-    PaymentRequired:
-      description: 此 dataset 需 sponsor 方案
+    BadRequest:
+      description: >-
+        參數錯誤，或方案權限不足（msg 為 "Your level is ... Please update your user level"）。
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    RateLimited:
+      description: 每小時請求數達上限（Requests reach the upper limit）
       content:
         application/json:
           schema:

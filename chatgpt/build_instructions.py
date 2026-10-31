@@ -116,10 +116,12 @@ def build_bundle() -> str:
     datasets = (KNOWLEDGE / "datasets.md").read_text(encoding="utf-8").strip()
     examples = (KNOWLEDGE / "examples.md").read_text(encoding="utf-8").strip()
     token_guide = (KNOWLEDGE / "token-guide.md").read_text(encoding="utf-8").strip()
+    pricing = (KNOWLEDGE / "pricing.md").read_text(encoding="utf-8").strip()
     return "\n\n---\n\n".join([
         "# FinMind Custom GPT — 完整 Dataset 參考\n\n" + datasets,
         "# 範例問答\n\n" + examples,
         "# Token 取得與設定\n\n" + token_guide,
+        pricing,
     ])
 
 

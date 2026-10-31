@@ -8,6 +8,7 @@
 - **台股 - 基本面：** 月營收、損益表 / 資產負債表 / 現金流量表、股利、除權息結果、市值 / 市值權重、減資 / 分割 / 變更面額參考價
 - **台股 - 衍生性商品：** 期貨 / 選擇權日成交與 tick、三大法人（含夜盤）、券商交易量、大額交易人、價差行情、最後結算價
 - **台股 - 即時資料（Sponsor）：** 股 / 期 / 選 tick snapshot
+- **整日全市場檔（Sponsor Pro）：** 逐筆、分K、分點等整日 parquet（MCP 限定）
 - **台股 - 可轉債（Backer/Sponsor）：** 總覽、日成交、三大法人、每日 Overview
 - **台股 - 其他：** 個股新聞、景氣對策信號、產業鏈
 - **國際市場：** 美股 / 英股 / 歐股 / 日股（日 K + 美股分鐘 K）
@@ -35,6 +36,8 @@
 | 外資持股 | `TaiwanStockShareholding` |
 | 借券 | `TaiwanStockSecuritiesLending` |
 | 分點進出（券商） | `TaiwanStockTradingDailyReport`（Sponsor，dedicated endpoint） |
+| 某分點買賣某股的每日統計 | `TaiwanStockTradingDailyReportSecIdAgg`（Sponsor，dedicated） |
+| 權證分點進出 | `TaiwanStockWarrantTradingDailyReport`（Sponsor，dedicated） |
 | 期貨日成交 | `TaiwanFuturesDaily` |
 | 選擇權日成交 | `TaiwanOptionDaily` |
 | 期貨 / 選擇權三大法人 | `TaiwanFuturesInstitutionalInvestors` / `TaiwanOptionInstitutionalInvestors` |
@@ -59,7 +62,9 @@
 
 **主要 endpoint：**
 - `/data` — 通用資料查詢
-- `/taiwan_stock_trading_daily_report` — 分點進出（dedicated，需 `data_id`+單日 `date`）
+- dedicated（MCP 用 `query_endpoint`）：`/taiwan_stock_trading_daily_report`、`/taiwan_stock_warrant_trading_daily_report`（`data_id` 或 `securities_trader_id`＋單日 `date`）、`/taiwan_stock_trading_daily_report_secid_agg`（四參數皆必填）、三支 `*_snapshot`、`/datalist`、`/translation`
+- `/storage_objects` — 整日全市場 parquet（Sponsor Pro）；僅 MCP `download_storage_object` 存到本機、回摘要，ChatGPT 不支援
+- 財報 PDF：僅 MCP `download_financial_report`
 
 FinMind 沒有「列出所有 dataset」的 API；完整清單見 `knowledge_bundle.md`。
 
@@ -130,13 +135,14 @@ Token 未設定或無效時，遵循 `errors.md` 的「401 Unauthorized」模板
 
 呼叫 FinMind API 後遇到非 200 回應，或回傳 `data: []` 時，依 `errors.md` 套用對應模板。錯誤類型對照：
 
-- **401 Unauthorized** → Token 無效或未設定
-- **402 Payment Required** → 此 dataset 需 sponsor 方案
+- **401 / `Token is illegal`** → Token 無效或未設定
+- **`Your level is ...`（HTTP 400）** → 方案權限不足：說明所需方案並請用戶升級
+- **其他 400 / 404 / 422** → 參數錯誤，依回應原文修正
 - **空資料（`data: []`）** → 查無此區間 / 此代號的資料
 - **HTTP timeout 或 5xx** → 上游暫時連線異常
-- **429 Rate Limit** → 請求數達上限
+- **402 / 429** → 請求數達上限
 
-不要把原始 JSON 錯誤訊息或 stack trace 丟給使用者，一律以 `errors.md` 中的繁中模板回覆，並提供下一步建議。
+以 `errors.md` 的繁中模板回覆並附 API 回應原文（`detail`/`msg`）一句，不要貼 stack trace。
 
 ## 拒答規則
 

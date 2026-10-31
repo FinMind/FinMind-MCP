@@ -7,6 +7,7 @@ URI scheme:
     finmind://instructions → knowledge/instructions.md
     finmind://token-guide → knowledge/token-guide.md
     finmind://regression  → knowledge/regression.md
+    finmind://pricing     → knowledge/pricing.md
 """
 
 from __future__ import annotations
@@ -41,6 +42,7 @@ _RESOURCE_MAP: dict[str, str] = {
     "instructions": "instructions.md",
     "token-guide": "token-guide.md",
     "regression": "regression.md",
+    "pricing": "pricing.md",
 }
 
 
@@ -127,7 +129,7 @@ def load_errors() -> str:
 def get_error_template(kind: str) -> Optional[str]:
     """Extract a section from errors.md by error kind.
 
-    kind ∈ {"auth", "payment", "empty", "upstream", "rate_limit"}
+    kind ∈ {"auth", "payment", "bad_request", "empty", "upstream", "rate_limit"}
 
     Returns the section's full markdown (header + body) including the
     繁中 response template block. Falls back to a generic 繁中 string
@@ -138,7 +140,8 @@ def get_error_template(kind: str) -> Optional[str]:
         return _FALLBACK_TEMPLATES.get(kind)
     headers = {
         "auth": "401 Unauthorized",
-        "payment": "402 Payment Required",
+        "payment": "方案權限不足",
+        "bad_request": "參數錯誤",
         "empty": "空資料",
         "upstream": "HTTP Timeout / 5xx",
         "rate_limit": "Rate Limit",
@@ -171,15 +174,16 @@ _FALLBACK_TEMPLATES: dict[str, str] = {
         "取得 Token：https://finmindtrade.com/analysis/#/account/user"
     ),
     "payment": (
-        "您查詢的資料集需要 Sponsor 會員權限才能存取。"
-        "升級 Sponsor 方案：https://finmindtrade.com/analysis/#/account/pricing"
+        "您目前的方案無法存取此資料，請升級方案後再試。"
+        "升級方案：https://finmindtrade.com/analysis/#/Sponsor/sponsor"
     ),
+    "bad_request": "查詢參數有誤，請依 API 回應原文修正參數後再試。",
     "empty": "在指定條件下查無資料，請確認股票代號與日期區間。",
     "upstream": (
         "FinMind 服務目前回應較慢或暫時無法連線，請稍候再試。"
     ),
     "rate_limit": (
         "您目前的請求數已達 FinMind 方案上限。"
-        "升級方案：https://finmindtrade.com/analysis/#/account/pricing"
+        "升級方案：https://finmindtrade.com/analysis/#/Sponsor/sponsor"
     ),
 }

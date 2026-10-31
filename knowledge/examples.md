@@ -424,3 +424,89 @@
 > | 2026-05-15 | 218 | 221 | 217 | 220 | 35,800,000 |
 >
 > 三個月累計上漲約 12.2%，趨勢偏多。
+
+---
+
+### Q22: 某券商分點每日買賣某股（TaiwanStockTradingDailyReportSecIdAgg）
+
+**User:** 「合庫（1020）在 2024-07-01 到 07-05 每天買賣台積電多少股」
+
+**Tool call:**
+- `query_endpoint(endpoint="taiwan_stock_trading_daily_report_secid_agg", data_id="2330", securities_trader_id="1020", start_date="2024-07-01", end_date="2024-07-05")`
+- 注意：這個 dataset 不走 `/api/v4/data`，`data_id`、`securities_trader_id`、`start_date`、`end_date` 四個都必填
+
+**Response:**
+> 合庫 (1020) 買賣台積電 (2330)，2024-07-01 ~ 07-05（節錄）：
+>
+> | date | buy_volume | sell_volume | buy_price | sell_price |
+> |------|-----------|-------------|-----------|------------|
+> | 2024-07-01 | 12,157 | 12,460 | 968.08 | 973.84 |
+>
+> buy_volume / sell_volume 單位為股，buy_price / sell_price 為成交均價。
+
+---
+
+### Q23: 即時報價（taiwan_stock_tick_snapshot，多檔）
+
+**User:** 「台積電跟加權指數現在多少」
+
+**Tool call:**
+- `query_endpoint(endpoint="taiwan_stock_tick_snapshot", data_id=["2330", "001"])`（`001` 為加權指數）
+
+**Response:**
+> | stock_id | close | change_price | change_rate | date |
+> |----------|-------|--------------|-------------|------|
+> | 2330 | 2,420 | -20 | -0.81% | 2026-10-16 14:30:00 |
+>
+> 回傳的 `date` 是最後一筆成交時間；非盤中時段顯示的是最近一次收盤的快照。
+
+---
+
+### Q24: 整日全市場檔（download_storage_object，Sponsor Pro）
+
+**User:** 「把 2026-10-16 全市場分 K 整日檔抓下來，給我台積電的部分」
+
+**Tool call:**
+- `download_storage_object(dataset="TaiwanStockKBar", date="2026-10-16", data_id="2330", limit=20)`
+
+**Response:**
+> 已下載整日檔到本機 `~/.cache/finmind-mcp/storage_objects/TaiwanStockKBar/TaiwanStockKBar_2026-10-16.parquet`（2.0 MB，全市場 237,201 筆）。台積電共 267 筆分 K，以下為前 20 筆：
+>
+> | date | minute | stock_id | open | high | low | close | volume |
+> |------|--------|----------|------|------|-----|-------|--------|
+> | … | … | 2330 | … | … | … | … | … |
+>
+> 完整資料可用 `pandas.read_parquet(<上述路徑>)` 讀取。
+
+不要要求工具把整份檔案貼回對話；需要彙總時，請使用者在本機以程式處理檔案。
+
+---
+
+### Q25: 方案權限不足
+
+**User:** 「下載 2026-10-16 全市場逐筆成交整日檔」（使用者是 Sponsor 方案）
+
+**Tool call:**
+- `download_storage_object(dataset="TaiwanStockPriceTick", date="2026-10-16")`
+
+**Tool 回傳（節錄）：** `storage_objects 整日檔 TaiwanStockPriceTick` 需要 **Sponsor Pro** 以上方案；API 回應原文 `Your level is <目前方案>. Please update your user level. ...`
+
+**Response:**
+> 全市場整日檔下載需要 **Sponsor Pro** 方案，您目前的方案無法使用。升級方案：https://finmindtrade.com/analysis/#/Sponsor/sponsor（升級後 Token 不用換）。
+>
+> 若只需要台積電的逐筆，Backer 以上就能用 `TaiwanStockPriceTick` 帶 `data_id=2330` 單日查詢，要我改這樣查嗎？
+
+---
+
+### Q26: 讀財報附註（download_financial_report，Sponsor Pro）
+
+**User:** 「台積電 2026 第二季存貨暴增，是成品賣不掉嗎？」
+
+**Tool calls:**
+1. `query_dataset(dataset="TaiwanStockBalanceSheet", data_id="2330", start_date="2025-12-31")` — 先確認存貨金額變化
+2. `download_financial_report(data_id="2330", year=2026, quarter=2, keyword="在製品")` — 三大報表沒有存貨組成，到附註找
+
+**Response:**
+> 存貨從 3,115 億增加到 3,855 億（+24%），但財報附註（第 21 頁「存貨」）拆開看，增加的 744 億裡有 709 億是**在製品**，製成品只多 34 億、原料還減少；當季存貨跌價損失也轉為回升利益。比較像投片增加，而不是成品賣不掉。
+
+不確定在哪一頁時，先不帶 `pages`／`keyword` 呼叫一次看目錄，再依頁次讀。工具標示「沒有文字層」或「文字層損壞」的頁面不要猜內容；主要報表數字改用三大報表 dataset。

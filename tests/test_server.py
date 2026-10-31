@@ -22,7 +22,7 @@ class _Params:
         self.__dict__.update(kwargs)
 
 
-async def test_list_tools_returns_the_four_tools():
+async def test_list_tools_returns_every_tool():
     result = await server.on_list_tools(None, None)
 
     assert isinstance(result, types.ListToolsResult)
@@ -31,6 +31,10 @@ async def test_list_tools_returns_the_four_tools():
         "list_datasets",
         "get_stock_info",
         "query_trading_daily_report",
+        "get_pricing",
+        "query_endpoint",
+        "download_storage_object",
+        "download_financial_report",
     ]
 
 

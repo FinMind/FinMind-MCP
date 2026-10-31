@@ -4,6 +4,7 @@ import pytest
 
 from finmind_mcp.errors import (
     AuthenticationError,
+    BadRequestError,
     EmptyDataError,
     FinMindError,
     PaymentRequiredError,
@@ -25,6 +26,7 @@ def test_finmind_error_base():
         PaymentRequiredError,
         EmptyDataError,
         RateLimitError,
+        BadRequestError,
         UpstreamError,
     ],
 )
@@ -41,7 +43,14 @@ def test_subclasses_are_distinct():
         PaymentRequiredError,
         EmptyDataError,
         RateLimitError,
+        BadRequestError,
         UpstreamError,
     ]
     # No two share identity.
     assert len({c for c in classes}) == len(classes)
+
+
+def test_detail_and_status_are_kept():
+    err = BadRequestError("HTTP 400: x", detail="x", status=400)
+    assert err.detail == "x" and err.status == 400
+    assert FinMindError("plain").detail == "plain"

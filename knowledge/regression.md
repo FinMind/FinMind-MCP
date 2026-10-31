@@ -265,3 +265,163 @@
 - 若 `query_dataset`，`dataset` == `TaiwanStockInfo` ✓
 - Response 文字內容包含「2330」字串 ✓
 - Response 文字內容包含「台積電」字串 ✓
+
+---
+
+### R13: 券商分點每日統計（SecIdAgg）
+
+**Query:** 「合庫（1020）在 2024-07-01 到 07-05 每天買賣台積電多少張」
+
+**Expected tool call:**
+- tool: `query_endpoint`
+- params:
+  - `endpoint`: `taiwan_stock_trading_daily_report_secid_agg`
+  - `data_id`: `2330`
+  - `securities_trader_id`: `1020`
+  - `start_date`: `2024-07-01`
+  - `end_date`: `2024-07-05`
+
+**Pass criteria:**
+- Tool called: `query_endpoint` ✓
+- Response 表格含 `securities_trader_id`、`buy_volume`、`sell_volume` ✓
+- ≥4 rows ✓
+- 不可改用 `query_dataset`（`/api/v4/data` 會回 422）✓
+
+---
+
+### R14: 單一分點當日所有個股
+
+**Query:** 「合庫（1020）2024-07-01 買賣了哪些股票」
+
+**Expected tool call:**
+- tool: `query_trading_daily_report`
+- params:
+  - `securities_trader_id`: `1020`
+  - `date`: `2024-07-01`
+
+**Pass criteria:**
+- Tool called: `query_trading_daily_report` ✓
+- Response 表格含 `stock_id`、`securities_trader_id`、`buy`、`sell` ✓
+- ≥10 rows ✓
+
+---
+
+### R15: 權證分點進出
+
+**Query:** 「權證 084655 在 2023-06-21 的分點進出」
+
+**Expected tool call:**
+- tool: `query_endpoint`
+- params:
+  - `endpoint`: `taiwan_stock_warrant_trading_daily_report`
+  - `data_id`: `084655`
+  - `date`: `2023-06-21`
+
+**Pass criteria:**
+- Tool called: `query_endpoint` ✓
+- Response 表格含 `securities_trader`、`price`、`buy`、`sell` ✓
+- ≥2 rows ✓
+
+---
+
+### R16: 台股即時報價（多檔）
+
+**Query:** 「台積電跟加權指數現在多少」
+
+**Expected tool call:**
+- tool: `query_endpoint`
+- params:
+  - `endpoint`: `taiwan_stock_tick_snapshot`
+  - `data_id`: `["2330", "001"]`
+
+**Pass criteria:**
+- Tool called: `query_endpoint` ✓
+- Response 表格含 `close`、`change_rate`，且包含「2330」「001」✓
+- ≥2 rows ✓
+
+---
+
+### R17: 期貨即時報價
+
+**Query:** 「台指期現在多少」
+
+**Expected tool call:**
+- tool: `query_endpoint`
+- params:
+  - `endpoint`: `taiwan_futures_snapshot`
+  - `data_id`: `TXF`
+
+**Pass criteria:**
+- Tool called: `query_endpoint` ✓
+- Response 表格含 `futures_id`、`close` ✓
+- ≥1 row ✓
+
+---
+
+### R18: 選擇權即時報價
+
+**Query:** 「台指選擇權月選現在的報價」
+
+**Expected tool call:**
+- tool: `query_endpoint`
+- params:
+  - `endpoint`: `taiwan_options_snapshot`
+  - `data_id`: `TXO`
+
+**Pass criteria:**
+- Tool called: `query_endpoint` ✓
+- Response 表格含 `options_id`、`close` ✓
+- ≥10 rows ✓
+
+---
+
+### R19: 可用代號清單（datalist）
+
+**Query:** 「ExchangeRate 可以查哪些國家」
+
+**Expected tool call:**
+- tool: `query_endpoint`
+- params:
+  - `endpoint`: `datalist`
+  - `dataset`: `ExchangeRate`
+
+**Pass criteria:**
+- Tool called: `query_endpoint` ✓
+- Response 包含「Taiwan」「Japan」✓
+
+---
+
+### R20: 欄位中英對照（translation）
+
+**Query:** 「資產負債表的英文欄位對應的中文是什麼」
+
+**Expected tool call:**
+- tool: `query_endpoint`
+- params:
+  - `endpoint`: `translation`
+  - `dataset`: `TaiwanStockBalanceSheet`
+
+**Pass criteria:**
+- Tool called: `query_endpoint` ✓
+- Response 表格含 `name`、`english` ✓
+- ≥10 rows ✓
+
+---
+
+### R21: 整日全市場檔下載（storage_objects）
+
+**Query:** 「把 2026-10-16 全市場分 K 整日檔下載下來，給我台積電的部分」
+
+**Expected tool call:**
+- tool: `download_storage_object`
+- params:
+  - `dataset`: `TaiwanStockKBar`
+  - `date`: `2026-10-16`
+  - `data_id`: `2330`
+
+**Pass criteria:**
+- Tool called: `download_storage_object` ✓
+- Response 包含本機檔案路徑、「總筆數」、「符合」✓
+- 表格含 `minute`、`close` ✓
+- 不可把整份檔案內容塞回對話 ✓
+- 需 Sponsor Pro；token 不足時應回所需方案 Sponsor Pro 與升級連結 ✓

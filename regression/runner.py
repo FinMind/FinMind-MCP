@@ -21,7 +21,7 @@ the markdown and refuses to run if the two drift (case added/removed/renamed).
 
 Usage:
     FINMIND_TOKEN=<token> uv run python regression/runner.py
-    uv run python regression/runner.py --min 10     # require 10/12 to pass
+    uv run python regression/runner.py --min 18     # require 18/21 to pass
 """
 
 from __future__ import annotations
@@ -134,6 +134,64 @@ CASES: list[Case] = [
         [Call("get_stock_info", {"stock_id": "2330"})],
         Check(contains=("2330", "台積電")),
     ),
+    # --- dedicated endpoints / storage_objects (Sponsor / Sponsor Pro) -------
+    Case(
+        "R13", "券商分點每日統計（SecIdAgg）",
+        [Call("query_endpoint", {
+            "endpoint": "taiwan_stock_trading_daily_report_secid_agg", "data_id": "2330",
+            "securities_trader_id": "1020", "start_date": "2024-07-01", "end_date": "2024-07-05",
+        })],
+        Check(columns=("securities_trader_id", "buy_volume", "sell_volume"), min_rows=4),
+    ),
+    Case(
+        "R14", "單一分點當日所有個股",
+        [Call("query_trading_daily_report", {"securities_trader_id": "1020", "date": "2024-07-01"})],
+        Check(columns=("stock_id", "securities_trader_id", "buy", "sell"), min_rows=10),
+    ),
+    Case(
+        "R15", "權證分點進出",
+        [Call("query_endpoint", {
+            "endpoint": "taiwan_stock_warrant_trading_daily_report", "data_id": "084655", "date": "2023-06-21",
+        })],
+        Check(columns=("securities_trader", "price", "buy", "sell"), min_rows=2),
+    ),
+    Case(
+        "R16", "台股即時報價（多檔）",
+        [Call("query_endpoint", {"endpoint": "taiwan_stock_tick_snapshot", "data_id": ["2330", "001"]})],
+        Check(columns=("close", "change_rate"), contains=("2330", "001"), min_rows=2),
+    ),
+    Case(
+        "R17", "期貨即時報價",
+        [Call("query_endpoint", {"endpoint": "taiwan_futures_snapshot", "data_id": "TXF"})],
+        Check(columns=("futures_id", "close"), min_rows=1),
+    ),
+    Case(
+        "R18", "選擇權即時報價",
+        [Call("query_endpoint", {"endpoint": "taiwan_options_snapshot", "data_id": "TXO"})],
+        Check(columns=("options_id", "close"), min_rows=10),
+    ),
+    Case(
+        "R19", "可用代號清單（datalist）",
+        [Call("query_endpoint", {"endpoint": "datalist", "dataset": "ExchangeRate"})],
+        Check(contains=("Taiwan", "Japan")),
+    ),
+    Case(
+        "R20", "欄位中英對照（translation）",
+        [Call("query_endpoint", {"endpoint": "translation", "dataset": "TaiwanStockBalanceSheet"})],
+        Check(columns=("name", "english"), min_rows=10),
+    ),
+    Case(
+        "R21", "整日全市場檔下載（storage_objects）",
+        [Call("download_storage_object", {"dataset": "TaiwanStockKBar", "date": "2026-10-16", "data_id": "2330"})],
+        Check(columns=("minute", "close"), contains=("總筆數", "符合", ".parquet"), min_rows=10),
+        note="需 Sponsor Pro token；等級不足時應回「需要 Sponsor Pro」與升級連結（見 regression/README.md）。",
+    ),
+    Case(
+        "R22", "財報 PDF 依關鍵字讀附註（TaiwanStockFinancialReportFile）",
+        [Call("download_financial_report", {"data_id": "2330", "year": 2026, "quarter": 2, "keyword": "在製品"})],
+        Check(contains=("總頁數", "在製品", ".pdf")),
+        note="需 Sponsor Pro token；等級不足時應回「財報 PDF 需要 Sponsor Pro」與升級連結。",
+    ),
 ]
 
 
@@ -229,6 +287,8 @@ class MCPProcess:
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             env={**os.environ},
+            # A 500-row table is one JSON-RPC line well over asyncio's 64 KiB default.
+            limit=16 * 1024 * 1024,
         )
         await self._send({
             "jsonrpc": "2.0", "id": self._next(), "method": "initialize",
@@ -308,7 +368,11 @@ async def run(min_pass: int) -> int:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="FinMind MCP 上線前 regression runner")
-    ap.add_argument("--min", type=int, default=9, help="通過門檻（預設 9/12）")
+    default_min = len(CASES) - 3
+    ap.add_argument(
+        "--min", type=int, default=default_min,
+        help=f"通過門檻（預設 {default_min}/{len(CASES)}）",
+    )
     args = ap.parse_args()
     sys.exit(asyncio.run(run(args.min)))
 
