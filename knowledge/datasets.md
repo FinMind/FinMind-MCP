@@ -58,7 +58,7 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 
 ### TaiwanStockAfterHoursFixedPriceTrading
 - **Endpoint:** `/api/v4/data`
-- **Tier:** Free
+- **Tier:** Free(w/ data_id)
 - **Required:** `dataset=TaiwanStockAfterHoursFixedPriceTrading`, `start_date`
 - **Optional:** `data_id` (股票代號；省略時 `start_date` 為 single day，取得該日所有股票), `end_date`（帶 `data_id` 時）
 - **Key columns:** date, stock_id, market, price, volume, trading_turnover, trading_money, unfilled_buy_volume, unfilled_sell_volume
