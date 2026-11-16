@@ -53,7 +53,7 @@ def install_fake_client(monkeypatch):
     return _install
 
 
-def test_tool_definitions_returns_eight_tools():
+def test_tool_definitions_returns_nine_tools():
     defs = tools.tool_definitions()
     names = [d.name for d in defs]
     assert names == [
@@ -65,6 +65,7 @@ def test_tool_definitions_returns_eight_tools():
         "query_endpoint",
         "download_storage_object",
         "download_financial_report",
+        "get_data_quality",
     ]
     for d in defs:
         assert d.description

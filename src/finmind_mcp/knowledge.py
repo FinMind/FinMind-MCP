@@ -8,6 +8,7 @@ URI scheme:
     finmind://token-guide → knowledge/token-guide.md
     finmind://regression  → knowledge/regression.md
     finmind://pricing     → knowledge/pricing.md
+    finmind://data-quality → knowledge/data-quality.md
 """
 
 from __future__ import annotations
@@ -43,6 +44,7 @@ _RESOURCE_MAP: dict[str, str] = {
     "token-guide": "token-guide.md",
     "regression": "regression.md",
     "pricing": "pricing.md",
+    "data-quality": "data-quality.md",
 }
 
 

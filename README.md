@@ -45,6 +45,7 @@ pipx install finmind-mcp
 | `query_endpoint` | 其他專屬 endpoint：分點統計 SecIdAgg、權證分點、股／期／選即時快照、`datalist`、`translation` | `/api/v4/<endpoint>`（allowlist） |
 | `download_storage_object` | 整日全市場 parquet（Sponsor Pro）下載到本機，回傳路徑、筆數、欄位、前幾列，可依代號／分點過濾 | `/api/v4/storage_objects` |
 | `download_financial_report` | 上市櫃公司財報／股東會年報原始 PDF（Sponsor Pro）下載到本機，回傳目錄、指定頁或含關鍵字頁面的文字 | `/api/v4/storage_objects?dataset=TaiwanStockFinancialReportFile` |
+| `get_data_quality` | 資料品質報告：單一 dataset 的檢測日期、驗證結果、與官方來源一致率、9 項檢測結果與報告頁連結；不帶 dataset 回總覽（不需 token） | [資料品質保證](https://finmind.github.io/DataQuality/) `summary.json` |
 
 權限不足時，工具會說明該 dataset／endpoint 需要哪個方案（Backer / Sponsor / Sponsor Pro）、附上 API 回應原文與升級連結；參數錯誤時同樣附上 API 原文。
 

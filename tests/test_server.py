@@ -35,6 +35,7 @@ async def test_list_tools_returns_every_tool():
         "query_endpoint",
         "download_storage_object",
         "download_financial_report",
+        "get_data_quality",
     ]
 
 

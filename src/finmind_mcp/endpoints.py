@@ -30,7 +30,6 @@ PARAM_NAMES = (
 DATALIST_DATASETS = (
     "CrudeOilPrices",
     "CurrencyCirculation",
-    "ExchangeRate",
     "GovernmentBonds",
     "GovernmentBondsYield",
     "InterestRate",

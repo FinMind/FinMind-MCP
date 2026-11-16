@@ -1,6 +1,6 @@
 """MCP tool implementations and markdown formatting.
 
-Eight tools are exposed:
+Nine tools are exposed:
 
 - `query_dataset`             — generic /api/v4/data query
 - `list_datasets`             — bundled dataset catalog (knowledge/datasets.md)
@@ -13,6 +13,8 @@ Eight tools are exposed:
                                  saved locally; returns a summary only
 - `download_financial_report` — /api/v4/storage_objects 財報／年報 PDF,
                                  saved locally; returns 目錄 / 指定頁 / 關鍵字頁文字
+- `get_data_quality`          — public data-quality report summary
+                                 (finmind.github.io/DataQuality/summary.json)
 
 Each tool returns a markdown string. `FinMindError` subclasses raised by
 `FinMindClient` are caught and converted into the 繁中 templates from
@@ -26,7 +28,7 @@ from typing import Any, Optional
 
 from mcp.types import Tool
 
-from . import knowledge, storage
+from . import knowledge, quality, storage
 from .client import FinMindClient
 from .endpoints import (
     DEDICATED_ONLY_DATASETS,
@@ -70,7 +72,7 @@ def _make_client() -> FinMindClient:
 
 
 def tool_definitions() -> list[Tool]:
-    """Return MCP Tool definitions for all eight tools in stable order."""
+    """Return MCP Tool definitions for all nine tools in stable order."""
     return [
         Tool(
             name="query_dataset",
@@ -166,7 +168,34 @@ def tool_definitions() -> list[Tool]:
         _query_endpoint_tool(),
         _download_storage_object_tool(),
         _download_financial_report_tool(),
+        _get_data_quality_tool(),
     ]
+
+
+def _get_data_quality_tool() -> Tool:
+    return Tool(
+        name="get_data_quality",
+        description=(
+            "查詢 FinMind 公開的資料品質報告（讀取每月更新的 summary.json，不需 token）。"
+            "帶 dataset 回傳該資料集的檢測日期、驗證結果、與官方來源一致率、9 項檢測結果與報告頁連結；"
+            "不帶則回傳總覽（各資料集結果與官方一致率）。使用者問資料可不可靠、怎麼驗證、"
+            "某個 dataset 的品質或與官方資料是否一致時使用。"
+        ),
+        input_schema={
+            "type": "object",
+            "properties": {
+                "dataset": {
+                    "type": "string",
+                    "description": "dataset 名稱，例如 TaiwanStockPrice；省略則回傳總覽",
+                },
+                "lang": {
+                    "type": "string",
+                    "enum": ["zh", "en"],
+                    "description": "報告頁連結語言（預設 zh 中文頁；en 為英文頁）",
+                },
+            },
+        },
+    )
 
 
 def _query_endpoint_tool() -> Tool:
@@ -337,6 +366,12 @@ async def dispatch(name: str, arguments: dict[str, Any]) -> str:
     }
     if name in offline:
         return offline[name]()
+    if name == "get_data_quality":
+        # Public static file on finmind.github.io — no FinMind token needed.
+        arguments = arguments or {}
+        return await quality.get_data_quality(
+            arguments.get("dataset"), arguments.get("lang") or "zh"
+        )
     handlers = {
         "query_dataset": _query_dataset,
         "get_stock_info": _get_stock_info,
