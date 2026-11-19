@@ -5,6 +5,10 @@ on:
     branches: [master]
   pull_request:
 
+# 只需要讀原始碼。repo 預設的 GITHUB_TOKEN 是讀寫權限，這裡收到最小。
+permissions:
+  contents: read
+
 # 只跑離線檢查（pytest 全 mock、smoke 用假 token、build_instructions 純本地）。
 # regression/runner.py 會打 live API、需要 FINMIND_TOKEN，故不放 CI，由發版前人工跑。
 
@@ -19,6 +23,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0   # hatch-vcs 需要 tags/history 才能決定版本（build 本套件時）
+          persist-credentials: false
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
@@ -47,11 +52,14 @@ jobs:
     steps:
       - name: Checkout FinMind-MCP
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Checkout FinMind-Doc (public)
         uses: actions/checkout@v4
         with:
           repository: FinMind/FinMind-Doc
+          persist-credentials: false
           path: FinMind-Doc
 
       - uses: actions/setup-python@v5
@@ -70,6 +78,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0   # --dev 會從原始碼 build 本套件，hatch-vcs 需要 tags
+          persist-credentials: false
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
