@@ -10,5 +10,5 @@ dependencies = [
     # download_storage_object 讀整日 parquet 用（finmind-mcp 的 parquet extra）。
     # Claude Desktop 使用者無法自己加 extra，所以擴充套件直接帶上；首次啟動多下載
     # 約 29–39 MB（Windows / macOS wheel），之後由 uv 快取。
-    "pyarrow>=14",
+    "pyarrow>=14.0.1",  # 14.0.0 以前有 parquet 反序列化漏洞（CVE-2023-47248）
 ]

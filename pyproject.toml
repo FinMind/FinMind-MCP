@@ -20,7 +20,10 @@ dependencies = [
     "mcp>=2.0.0",
     "httpx>=0.27",
     "pydantic>=2.0",
-    "pypdf>=4.0",  # download_financial_report 抽財報 PDF 文字（純 Python，約 300 KB）
+    # download_financial_report 抽財報 PDF 文字（純 Python，約 300 KB）。
+    # 下限設在已修正已知「特製 PDF 造成無窮迴圈／記憶體暴增」漏洞的版本：PDF 由各公司上傳，
+    # 不能假設內容可信。
+    "pypdf>=6.21.4",
 ]
 
 [project.urls]
@@ -36,8 +39,9 @@ finmind-mcp = "finmind_mcp.server:main"
 # download_storage_object 讀整日 parquet 用（算筆數、欄位、head、依 data_id 過濾）。
 # pyarrow wheel 約 29–54 MB（依平台），不放必裝相依；沒裝時工具仍會下載檔案、
 # 回傳路徑，並提示安裝方式。Claude Desktop 擴充套件（mcpb/）預設帶這個 extra。
-parquet = ["pyarrow>=14"]
-dev = ["pytest>=7", "pytest-asyncio>=0.23", "respx>=0.21", "pyarrow>=14"]
+# 14.0.1 起修正讀 parquet 時的反序列化漏洞（CVE-2023-47248），14.0.0 以前不可用。
+parquet = ["pyarrow>=14.0.1"]
+dev = ["pytest>=7", "pytest-asyncio>=0.23", "respx>=0.21", "pyarrow>=14.0.1"]
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
