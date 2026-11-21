@@ -288,11 +288,11 @@ async def test_query_endpoint_snapshot_multi_ids(monkeypatch):
 
 
 async def test_query_endpoint_datalist_and_translation_render(monkeypatch):
-    _install(monkeypatch, result=["Japan", "Taiwan"])
+    _install(monkeypatch, result=["JPY", "USD"])
     md = await tools.dispatch(
-        "query_endpoint", {"endpoint": "datalist", "dataset": "ExchangeRate"}
+        "query_endpoint", {"endpoint": "datalist", "dataset": "TaiwanExchangeRate"}
     )
-    assert "| data_id |" in md and "Taiwan" in md
+    assert "| data_id |" in md and "USD" in md
     _install(monkeypatch, result={"name": ["應付帳款"], "english": ["AccountsPayable"]})
     md = await tools.dispatch(
         "query_endpoint",

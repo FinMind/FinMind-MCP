@@ -37,7 +37,8 @@
     { "name": "get_pricing", "description": "查詢 FinMind 會員方案與價格" },
     { "name": "query_endpoint", "description": "查詢專屬 endpoint：分點統計、權證分點、即時快照、datalist、欄位翻譯" },
     { "name": "download_storage_object", "description": "下載整日全市場 parquet 到本機並回傳摘要（Sponsor Pro）" },
-    { "name": "download_financial_report", "description": "下載上市櫃公司財報／股東會年報 PDF 並回傳目錄或指定頁文字（Sponsor Pro）" }
+    { "name": "download_financial_report", "description": "下載上市櫃公司財報／股東會年報 PDF 並回傳目錄或指定頁文字（Sponsor Pro）" },
+    { "name": "get_data_quality", "description": "查詢 FinMind 公開資料品質報告：檢測日期、驗證結果、官方一致率與報告頁連結（不需 token）" }
   ],
   "user_config": {
     "finmind_token": {

@@ -377,17 +377,17 @@
 
 ### R19: 可用代號清單（datalist）
 
-**Query:** 「ExchangeRate 可以查哪些國家」
+**Query:** 「台灣銀行匯率（TaiwanExchangeRate）可以查哪些幣別」
 
 **Expected tool call:**
 - tool: `query_endpoint`
 - params:
   - `endpoint`: `datalist`
-  - `dataset`: `ExchangeRate`
+  - `dataset`: `TaiwanExchangeRate`
 
 **Pass criteria:**
 - Tool called: `query_endpoint` ✓
-- Response 包含「Taiwan」「Japan」✓
+- Response 包含「USD」「JPY」✓
 
 ---
 
@@ -425,3 +425,40 @@
 - 表格含 `minute`、`close` ✓
 - 不可把整份檔案內容塞回對話 ✓
 - 需 Sponsor Pro；token 不足時應回所需方案 Sponsor Pro 與升級連結 ✓
+
+---
+
+### R22: 財報 PDF 依關鍵字讀附註（TaiwanStockFinancialReportFile）
+
+**Query:** 「台積電 2026 第二季財報附註裡的在製品是多少？」
+
+**Expected tool call:**
+- tool: `download_financial_report`
+- params:
+  - `data_id`: `2330`
+  - `year`: `2026`
+  - `quarter`: `2`
+  - `keyword`: `在製品`
+
+**Pass criteria:**
+- Tool called: `download_financial_report` ✓
+- Response 包含本機 `.pdf` 路徑、「總頁數」與含「在製品」的頁面文字 ✓
+- 需 Sponsor Pro；token 不足時應回「財報 PDF 需要 Sponsor Pro」與升級連結 ✓
+
+---
+
+### R23: 資料品質報告（get_data_quality）
+
+**Query:** 「FinMind 的台股股價資料可靠嗎？有跟官方資料比對過嗎？」
+
+**Expected tool call:**
+- tool: `get_data_quality`
+- params:
+  - `dataset`: `TaiwanStockPrice`
+
+**Pass criteria:**
+- Tool called: `get_data_quality` ✓
+- Response 包含「驗證結果」「檢測日期」「與官方來源一致率」✓
+- Response 包含報告頁連結 `https://finmind.github.io/DataQuality/TaiwanStockPrice/` ✓
+- 表格含「檢測項目」「結果」，9 列 ✓
+- 不需 FINMIND_TOKEN ✓

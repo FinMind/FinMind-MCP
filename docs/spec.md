@@ -216,6 +216,7 @@ Claude.ai / Code / Desktop          Gemini CLI / Cursor / Windsurf
 | `query_endpoint` | 通用 dedicated endpoint 查詢，`endpoint` 為 allowlist enum，參數依 endpoint 在本地驗證 | `taiwan_stock_trading_daily_report`、`taiwan_stock_warrant_trading_daily_report`、`taiwan_stock_trading_daily_report_secid_agg`、`taiwan_stock_tick_snapshot`、`taiwan_futures_snapshot`、`taiwan_options_snapshot`、`datalist`、`translation` |
 | `download_storage_object` | 整日全市場 parquet 下載到本機，只回摘要（路徑、筆數、schema、前幾列／過濾結果 ≤500 列） | `/api/v4/storage_objects`（Sponsor Pro） |
 | `download_financial_report` | 財報／年報 PDF 下載到本機，回封面＋目錄、指定頁（`pages`）或含關鍵字頁（`keyword`）的文字（≤30,000 字）；影像頁、亂碼頁只標頁碼不回文字 | `/api/v4/storage_objects?dataset=TaiwanStockFinancialReportFile`（Sponsor Pro） |
+| `get_data_quality` | 資料品質報告摘要：帶 `dataset` 回該資料集檢測日期、驗證結果、官方一致率、9 項檢測結果與報告頁連結；不帶回總覽；讀不到時回說明＋總覽頁連結（不丟錯） | `https://finmind.github.io/DataQuality/summary.json`（公開靜態檔，不需 token） |
 
 **Endpoint 範圍：** 只放 FinMind-Doc 公開記載、且 live 驗證過的 endpoint；allowlist 與參數規則集中在 `src/finmind_mcp/endpoints.py`，新增 endpoint 只要加一筆。刻意不放：`/login`（帳密，MCP 一律用 token）、`/health`、`/websocket`（串流）。
 

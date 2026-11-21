@@ -510,3 +510,20 @@
 > 存貨從 3,115 億增加到 3,855 億（+24%），但財報附註（第 21 頁「存貨」）拆開看，增加的 744 億裡有 709 億是**在製品**，製成品只多 34 億、原料還減少；當季存貨跌價損失也轉為回升利益。比較像投片增加，而不是成品賣不掉。
 
 不確定在哪一頁時，先不帶 `pages`／`keyword` 呼叫一次看目錄，再依頁次讀。工具標示「沒有文字層」或「文字層損壞」的頁面不要猜內容；主要報表數字改用三大報表 dataset。
+
+---
+
+### Q27: 資料可不可靠（get_data_quality）
+
+**User:** 「FinMind 的台股股價資料可靠嗎？有跟官方對過嗎？」
+
+**Tool call:**
+- `get_data_quality(dataset="TaiwanStockPrice")`
+
+**Response:**
+> FinMind 每月對資料集做一次全面品質驗證並公開報告。`TaiwanStockPrice` 本期（2026-11，檢測日期 2026-11-14）結果為**已驗證**：與官方公開資料逐筆比對一致率 100.00%，9 項檢測（更新時效、交易日涵蓋、補行交易日、跨資料集一致性等）皆通過，另附資料特性說明（例如興櫃股票的開盤參考價）。
+>
+> - 完整報告（含可重現的查詢參數，可用自己的 token 驗證）：https://finmind.github.io/DataQuality/TaiwanStockPrice/
+> - 資料品質總覽：https://finmind.github.io/DataQuality/ ；檢測方法：https://finmind.github.io/DataQuality/Methodology/
+
+只引述工具或報告頁的內容。ChatGPT 沒有這個工具時，直接附上述連結並簡述檢測方式。

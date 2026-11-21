@@ -15,9 +15,9 @@ uv run python regression/runner.py --min 18     # 自訂通過門檻（預設 = 
 成功時 exit code 0，未達門檻時為 1（方便接 CI）。
 
 ```
-[1/21] PASS — R1 個股最近一週股價
+[1/23] PASS — R1 個股最近一週股價
 ...
-21/21 passed（門檻 18）
+23/23 passed（門檻 20）
 ```
 
 ## 它測什麼、不測什麼
@@ -43,8 +43,8 @@ uv run python regression/runner.py --min 18     # 自訂通過門檻（預設 = 
 
 ## 注意
 
-- 會真的消耗 API quota（21 題、約 22 次呼叫）。
+- 會真的消耗 API quota（23 題、約 23 次 FinMind API 呼叫；R23 讀 finmind.github.io 的公開 summary.json，不耗 quota、不需 token）。
 - 使用 spec 內的固定日期（today=2026-05-17），都落在過去，故 live API 有資料、結果穩定。
-- R13–R20 需 Sponsor、R21（整日檔）需 Sponsor Pro。token 等級不足時這幾題會失敗，此時改驗「權限不足 → 升級提示」：回應應包含所需方案（Sponsor / Sponsor Pro）、API 回應原文（`Your level is ...`）與價格頁連結 `https://finmindtrade.com/analysis/#/Sponsor/sponsor`。
+- R13–R20 需 Sponsor、R21（整日檔）與 R22（財報 PDF）需 Sponsor Pro。token 等級不足時這幾題會失敗，此時改驗「權限不足 → 升級提示」：回應應包含所需方案（Sponsor / Sponsor Pro）、API 回應原文（`Your level is ...`）與價格頁連結 `https://finmindtrade.com/analysis/#/Sponsor/sponsor`。
 - R16–R18 是即時快照，盤後／假日回最近一次的快照，仍有資料。
 - R21 會把整日檔存到 `FINMIND_DOWNLOAD_DIR`（預設使用者快取目錄 `finmind-mcp/storage_objects/`），第二次跑會直接用本機檔。

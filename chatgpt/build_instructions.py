@@ -5,7 +5,7 @@ Produces two outputs:
 - ``instructions.txt``: inline GPT instructions, < 8000 chars
   (full instructions + errors + compact dataset cheatsheet + token pointer)
 - ``knowledge_bundle.md``: rich content for GPT Knowledge file upload, no size cap
-  (full datasets + examples + token-guide)
+  (full datasets + examples + token-guide + pricing + data quality)
 
 If ``instructions.txt`` exceeds the budget, abort.
 """
@@ -117,11 +117,13 @@ def build_bundle() -> str:
     examples = (KNOWLEDGE / "examples.md").read_text(encoding="utf-8").strip()
     token_guide = (KNOWLEDGE / "token-guide.md").read_text(encoding="utf-8").strip()
     pricing = (KNOWLEDGE / "pricing.md").read_text(encoding="utf-8").strip()
+    data_quality = (KNOWLEDGE / "data-quality.md").read_text(encoding="utf-8").strip()
     return "\n\n---\n\n".join([
         "# FinMind Custom GPT — 完整 Dataset 參考\n\n" + datasets,
         "# 範例問答\n\n" + examples,
         "# Token 取得與設定\n\n" + token_guide,
         pricing,
+        data_quality,
     ])
 
 

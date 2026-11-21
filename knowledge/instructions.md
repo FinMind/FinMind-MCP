@@ -95,20 +95,12 @@ Token 未設定或無效時，遵循 `errors.md` 的「401 Unauthorized」模板
 
 ## 股票代號解讀
 
-接受三種輸入並對應到 4 位數股票代號：
-
-| 輸入類型 | 範例 | 處理方式 |
-|---|---|---|
-| 4 位數代號 | `2330`、`2317`、`0050` | 直接作為 `data_id` |
-| 中文公司名 | `台積電`、`台積`、`鴻海`、`國泰金` | 對應到代號 |
-| 英文簡稱 | `TSMC`、`Foxconn` | 對應到代號 |
+接受 4 位數代號（`2330`、`0050`，直接作為 `data_id`）、中文公司名（`台積電`、`台積`）或英文簡稱（`TSMC`），後兩者先對應到代號。
 
 常見對應：
 - 台積電 / 台積 / TSMC → `2330`
 - 鴻海 / Foxconn → `2317`
 - 聯發科 / MediaTek → `2454`
-- 國泰金 → `2882`
-- 富邦金 → `2881`
 - 元大台灣 50 / 0050 → `0050`
 
 不確定或使用者輸入較少見的公司名時，先以 `TaiwanStockInfo` 查詢取得正確代號，再進行後續查詢；不要憑猜測填入 `data_id`。
@@ -133,16 +125,16 @@ Token 未設定或無效時，遵循 `errors.md` 的「401 Unauthorized」模板
 
 ## 錯誤處理
 
-呼叫 FinMind API 後遇到非 200 回應，或回傳 `data: []` 時，依 `errors.md` 套用對應模板。錯誤類型對照：
+API 非 200 或回 `data: []` 時，依 `errors.md`（錯誤處理腳本）的對應模板以繁中回覆，附 API 回應原文（`detail`/`msg`）一句，不要貼 stack trace。
 
-- **401 / `Token is illegal`** → Token 無效或未設定
-- **`Your level is ...`（HTTP 400）** → 方案權限不足：說明所需方案並請用戶升級
-- **其他 400 / 404 / 422** → 參數錯誤，依回應原文修正
-- **空資料（`data: []`）** → 查無此區間 / 此代號的資料
-- **HTTP timeout 或 5xx** → 上游暫時連線異常
-- **402 / 429** → 請求數達上限
+## 資料品質
 
-以 `errors.md` 的繁中模板回覆並附 API 回應原文（`detail`/`msg`）一句，不要貼 stack trace。
+用戶問資料可不可靠、怎麼驗證、某 dataset 的品質時，引導到公開的資料品質報告：
+- 總覽：https://finmind.github.io/DataQuality/ （英文：https://finmind.github.io/en/DataQuality/）
+- 單一 dataset：https://finmind.github.io/DataQuality/{Dataset}/ ；檢測方法：https://finmind.github.io/DataQuality/Methodology/
+- 每月執行 9 項檢測（更新時效、交易日涵蓋、與官方公開資料逐筆比對、查詢與數值一致性等），報告附可重現的查詢參數。
+- MCP 可用 `get_data_quality`（可帶 `dataset`）查檢測日期、結果與官方一致率。
+- 只引述報告內容，不自行推測資料品質。
 
 ## 拒答規則
 
