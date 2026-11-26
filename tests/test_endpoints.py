@@ -487,3 +487,18 @@ def test_default_download_dir_is_user_cache(monkeypatch):
     monkeypatch.delenv("FINMIND_DOWNLOAD_DIR", raising=False)
     path = storage.download_dir()
     assert path.parts[-2:] == ("finmind-mcp", "storage_objects")
+
+
+def test_stock_snapshot_tool_description_mentions_50_limit():
+    tool = next(t for t in tools.tool_definitions() if t.name == "query_endpoint")
+    line = next(
+        line
+        for line in tool.description.splitlines()
+        if line.startswith("- taiwan_stock_tick_snapshot")
+    )
+    assert "2027-02-01" in line
+    assert "最多 50 檔" in line
+    assert "不再支援不帶 data_id" in line
+    # 期貨／選擇權快照不受此限制，不應帶到該說明
+    for name in ("taiwan_futures_snapshot", "taiwan_options_snapshot"):
+        assert "50 檔" not in endpoints.ENDPOINTS[name]["summary"]

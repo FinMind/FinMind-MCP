@@ -692,7 +692,8 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Endpoint:** `/api/v4/taiwan_stock_tick_snapshot`（dedicated；**不在** `/api/v4/data` 的 `dataset` enum 內，帶 `dataset=` 走通用路徑會被拒）
 - **Tier:** Sponsor
 - **Required:** `data_id` (股票代號；亦支援 3 碼指數代號如 `001` 加權指數)
-- **Optional:** `data_id` 可帶多個一次取得，或留空 `data_id=""` 一次取全部
+- **Optional:** `data_id` 可帶多個一次取得，或留空 `data_id=""` 一次取全部（2027-01-31 前）
+- **注意:** 自 2027-02-01 起，台股即時報價 snapshot 每次請求最多 50 檔，且不再支援不帶 data_id 一次取得全部股票，請改為分批帶入 data_id（每次最多 50 檔）。
 - **Key columns:** close, high, low, open, volume, total_volume, change_price, change_rate, date, stock_id
 - **描述:** 台股即時報價（快照）
 

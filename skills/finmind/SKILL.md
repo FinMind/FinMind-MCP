@@ -12,7 +12,7 @@ description: Use when the user asks about Taiwan or global financial data — �
 - `get_stock_info` — 台股代號／中文名／產業查詢（TaiwanStockInfo）
 - `list_datasets` — 列出所有可用 dataset；不確定用哪個時先查
 - `query_trading_daily_report` — 券商分點進出（Sponsor，單日 `date` + `data_id` 或 `securities_trader_id`）
-- `query_endpoint` — 其他專屬 endpoint：`taiwan_stock_trading_daily_report_secid_agg`（分點統計，四參數必填）、`taiwan_stock_warrant_trading_daily_report`（權證分點）、`taiwan_stock_tick_snapshot` / `taiwan_futures_snapshot` / `taiwan_options_snapshot`（即時快照）、`datalist`、`translation`
+- `query_endpoint` — 其他專屬 endpoint：`taiwan_stock_trading_daily_report_secid_agg`（分點統計，四參數必填）、`taiwan_stock_warrant_trading_daily_report`（權證分點）、`taiwan_stock_tick_snapshot` / `taiwan_futures_snapshot` / `taiwan_options_snapshot`（即時快照；自 2027-02-01 起，台股即時報價 snapshot 每次請求最多 50 檔，且不再支援不帶 data_id 一次取得全部股票，請改為分批帶入 data_id（每次最多 50 檔））、`datalist`、`translation`
 - `download_storage_object` — 整日全市場 parquet（Sponsor Pro）存到本機，只回摘要；要更多資料時讀回傳的本機路徑
 - `download_financial_report` — 財報／股東會年報原始 PDF（Sponsor Pro）；先回目錄，再用 `pages` 或 `keyword` 讀附註（營收細分、存貨組成、轉投資處分等三大報表沒有的內容）
 - `get_pricing` — 方案價格、API 上限、授權規則；使用者問價格／方案／升級時用（不需 token）

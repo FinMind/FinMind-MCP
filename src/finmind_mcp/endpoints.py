@@ -102,7 +102,10 @@ ENDPOINTS: dict[str, dict[str, Any]] = {
         "multi": ("data_id",),
         "summary": (
             "台股即時報價快照：data_id=股票代號或 3 碼指數代號（如 001 加權指數），"
-            "可傳陣列一次取多檔；省略則回全市場"
+            "可傳陣列一次取多檔；目前省略則回全市場。"
+            "自 2027-02-01 起，台股即時報價 snapshot 每次請求最多 50 檔，"
+            "且不再支援不帶 data_id 一次取得全部股票，"
+            "請改為分批帶入 data_id（每次最多 50 檔）"
         ),
     },
     "taiwan_futures_snapshot": {
