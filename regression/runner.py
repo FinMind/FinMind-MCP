@@ -172,8 +172,8 @@ CASES: list[Case] = [
     ),
     Case(
         "R19", "可用代號清單（datalist）",
-        [Call("query_endpoint", {"endpoint": "datalist", "dataset": "ExchangeRate"})],
-        Check(contains=("Taiwan", "Japan")),
+        [Call("query_endpoint", {"endpoint": "datalist", "dataset": "TaiwanExchangeRate"})],
+        Check(contains=("USD", "JPY")),
     ),
     Case(
         "R20", "欄位中英對照（translation）",
@@ -191,6 +191,16 @@ CASES: list[Case] = [
         [Call("download_financial_report", {"data_id": "2330", "year": 2026, "quarter": 2, "keyword": "在製品"})],
         Check(contains=("總頁數", "在製品", ".pdf")),
         note="需 Sponsor Pro token；等級不足時應回「財報 PDF 需要 Sponsor Pro」與升級連結。",
+    ),
+    # --- public data-quality report (finmind.github.io, no token) ------------
+    Case(
+        "R23", "資料品質報告（get_data_quality）",
+        [Call("get_data_quality", {"dataset": "TaiwanStockPrice"})],
+        Check(
+            columns=("檢測項目", "結果"),
+            contains=("驗證結果", "檢測日期", "與官方來源一致率", "https://finmind.github.io/DataQuality/TaiwanStockPrice/"),
+            min_rows=9,
+        ),
     ),
 ]
 

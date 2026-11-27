@@ -16,6 +16,7 @@ description: Use when the user asks about Taiwan or global financial data — �
 - `download_storage_object` — 整日全市場 parquet（Sponsor Pro）存到本機，只回摘要；要更多資料時讀回傳的本機路徑
 - `download_financial_report` — 財報／股東會年報原始 PDF（Sponsor Pro）；先回目錄，再用 `pages` 或 `keyword` 讀附註（營收細分、存貨組成、轉投資處分等三大報表沒有的內容）
 - `get_pricing` — 方案價格、API 上限、授權規則；使用者問價格／方案／升級時用（不需 token）
+- `get_data_quality` — 資料品質報告（檢測日期、驗證結果、官方一致率、報告頁連結）；使用者問資料可不可靠、怎麼驗證、某 dataset 品質時用（不需 token）
 
 需要 `FINMIND_TOKEN`（會員中心 <https://finmindtrade.com/analysis/#/account/user> 取得）。
 未設定或 401 時，引導使用者去該頁取得 Token 並設成環境變數。
