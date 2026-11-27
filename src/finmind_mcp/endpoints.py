@@ -105,7 +105,14 @@ ENDPOINTS: dict[str, dict[str, Any]] = {
             "依臺灣證券交易所規範，自 2027-02-01 起，"
             "台股即時報價 snapshot 每次請求最多 50 檔，"
             "且不再支援不帶 data_id 一次取得全部股票，"
-            "請改為分批帶入 data_id（每次最多 50 檔）"
+            "請改為分批帶入 data_id（每次最多 50 檔）。"
+            "Sponsor Pro 另回傳上市櫃盤中零股欄位 odd_lot_*"
+            "（09:00~13:30；odd_lot_date 零股最近成交時間、"
+            "odd_lot_open/high/low/close、odd_lot_change_price、"
+            "odd_lot_change_rate（%）、odd_lot_total_volume（股）、"
+            "odd_lot_buy_price/odd_lot_buy_volume（股）、"
+            "odd_lot_sell_price/odd_lot_sell_volume（股）、"
+            "odd_lot_is_simulated 是否為零股試撮；興櫃為 null，指數沒有）"
         ),
     },
     "taiwan_futures_snapshot": {

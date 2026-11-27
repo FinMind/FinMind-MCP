@@ -527,3 +527,21 @@
 > - 資料品質總覽：https://finmind.github.io/DataQuality/ ；檢測方法：https://finmind.github.io/DataQuality/Methodology/
 
 只引述工具或報告頁的內容。ChatGPT 沒有這個工具時，直接附上述連結並簡述檢測方式。
+
+---
+
+### Q28: 零股即時報價（taiwan_stock_tick_snapshot，Sponsor Pro）
+
+**User:** 「台積電盤中零股現在多少」
+
+**Tool call:**
+- `query_endpoint(endpoint="taiwan_stock_tick_snapshot", data_id=["2330"])`
+
+**Response:** 讀回應中的 `odd_lot_*` 欄位（需 **Sponsor Pro** 方案；Sponsor 方案的回應不含這些欄位）：
+> | stock_id | odd_lot_close | odd_lot_change_rate | odd_lot_total_volume | odd_lot_buy_price | odd_lot_sell_price | odd_lot_date |
+> |----------|---------------|---------------------|----------------------|-------------------|--------------------|--------------|
+> | 2330 | 2,415 | -0.82% | 1,234,567 | 2,410 | 2,415 | 2026-10-16 13:30:00 |
+>
+> 盤中零股交易時段為 09:00~13:30；`odd_lot_date` 是零股最近一次成交時間，`odd_lot_total_volume`、`odd_lot_buy_volume`、`odd_lot_sell_volume` 單位為**股**。`odd_lot_is_simulated` 為 true 時表示目前是零股試撮價，不是實際成交。
+
+若 `odd_lot_*` 欄位不存在，表示目前方案不含零股報價，請說明需 Sponsor Pro 並附升級連結 https://finmindtrade.com/analysis/#/Sponsor/sponsor 。興櫃股票的 `odd_lot_*` 為 null，指數（如 `001`）沒有零股欄位。

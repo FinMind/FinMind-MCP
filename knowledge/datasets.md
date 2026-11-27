@@ -695,6 +695,7 @@ FinMind 會員方案由低到高為 **Free → Backer → Sponsor → Sponsor Pr
 - **Optional:** `data_id` 可帶多個一次取得，或留空 `data_id=""` 一次取全部（2027-01-31 前）
 - **注意:** 依臺灣證券交易所規範，自 2027-02-01 起，台股即時報價 snapshot 每次請求最多 50 檔，且不再支援不帶 data_id 一次取得全部股票，請改為分批帶入 data_id（每次最多 50 檔）。
 - **Key columns:** close, high, low, open, volume, total_volume, change_price, change_rate, date, stock_id
+- **Sponsor Pro 額外欄位（盤中零股）:** Sponsor Pro 方案的回應另含上市櫃股票的盤中零股報價（盤中零股交易時段 09:00~13:30）：`odd_lot_date`（零股最近成交時間）、`odd_lot_open` / `odd_lot_high` / `odd_lot_low` / `odd_lot_close`（零股開高低收）、`odd_lot_change_price`（零股漲跌）、`odd_lot_change_rate`（零股漲跌幅，單位 %）、`odd_lot_total_volume`（零股累計成交量，單位：股）、`odd_lot_buy_price` / `odd_lot_buy_volume`（零股委買價／委買量，量單位：股）、`odd_lot_sell_price` / `odd_lot_sell_volume`（零股委賣價／委賣量，量單位：股）、`odd_lot_is_simulated`（是否為零股試撮，布林值）。興櫃股票這些欄位為 null；指數（如 `001`）沒有零股欄位；Sponsor 方案的回應不含 `odd_lot_*` 欄位
 - **描述:** 台股即時報價（快照）
 
 ### TaiwanFutOptTickInfo
