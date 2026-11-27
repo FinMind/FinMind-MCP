@@ -223,6 +223,8 @@ def _query_endpoint_tool() -> Tool:
                 "data_id": {
                     "description": (
                         "標的代號（股票 / 權證 / 期貨 / 選擇權系列）。snapshot 類可傳陣列一次查多檔"
+                        "（依臺灣證券交易所規範，taiwan_stock_tick_snapshot"
+                        " 自 2027-02-01 起每次最多 50 檔且必帶 data_id）"
                     ),
                     "anyOf": [
                         {"type": "string"},
