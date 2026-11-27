@@ -542,6 +542,6 @@
 > |----------|---------------|---------------------|----------------------|-------------------|--------------------|--------------|
 > | 2330 | 2,415 | -0.82% | 1,234,567 | 2,410 | 2,415 | 2026-10-16 13:30:00 |
 >
-> 盤中零股交易時段為 09:00~13:30；`odd_lot_date` 是零股最近一次成交時間，`odd_lot_total_volume`、`odd_lot_buy_volume`、`odd_lot_sell_volume` 單位為**股**。`odd_lot_is_simulated` 為 true 時表示目前是零股試撮價，不是實際成交。
+> 盤中零股 09:00~13:30；13:40 後含盤後零股（成交價、時間、最佳一檔委買委賣價為盤後零股，累計成交量為盤中＋盤後合計），開高低仍為盤中零股的值；`odd_lot_date` 是零股最近一次成交時間，`odd_lot_total_volume`、`odd_lot_buy_volume`、`odd_lot_sell_volume` 單位為**股**。`odd_lot_is_simulated` 為 true 時表示目前是零股試撮價，不是實際成交。
 
 若 `odd_lot_*` 欄位不存在，表示目前方案不含零股報價，請說明需 Sponsor Pro 並附升級連結 https://finmindtrade.com/analysis/#/Sponsor/sponsor 。興櫃股票的 `odd_lot_*` 為 null，指數（如 `001`）沒有零股欄位。

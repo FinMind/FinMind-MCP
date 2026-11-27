@@ -42,7 +42,7 @@ pipx install finmind-mcp
 | `get_stock_info` | 台股代號／名稱／產業 | `/api/v4/data?dataset=TaiwanStockInfo` |
 | `query_trading_daily_report` | 單日分點進出（依個股 `data_id` 或券商 `securities_trader_id`） | `/api/v4/taiwan_stock_trading_daily_report` |
 | `get_pricing` | 方案價格與授權（離線、不需 token） | 內建 `knowledge/pricing.md` |
-| `query_endpoint` | 其他專屬 endpoint：分點統計 SecIdAgg、權證分點、股／期／選即時快照（依臺灣證券交易所規範，台股快照自 2027-02-01 起每次最多 50 檔、須帶 `data_id`；Sponsor Pro 另含上市櫃盤中零股欄位 `odd_lot_*`）、`datalist`、`translation` | `/api/v4/<endpoint>`（allowlist） |
+| `query_endpoint` | 其他專屬 endpoint：分點統計 SecIdAgg、權證分點、股／期／選即時快照（依臺灣證券交易所規範，台股快照自 2027-02-01 起每次最多 50 檔、須帶 `data_id`；Sponsor Pro 另含上市櫃盤中零股欄位 `odd_lot_*`，09:00~13:30，13:40 後含盤後零股）、`datalist`、`translation` | `/api/v4/<endpoint>`（allowlist） |
 | `download_storage_object` | 整日全市場 parquet（Sponsor Pro）下載到本機，回傳路徑、筆數、欄位、前幾列，可依代號／分點過濾 | `/api/v4/storage_objects` |
 | `download_financial_report` | 上市櫃公司財報／股東會年報原始 PDF（Sponsor Pro）下載到本機，回傳目錄、指定頁或含關鍵字頁面的文字 | `/api/v4/storage_objects?dataset=TaiwanStockFinancialReportFile` |
 | `get_data_quality` | 資料品質報告：單一 dataset 的檢測日期、驗證結果、與官方來源一致率、9 項檢測結果與報告頁連結；不帶 dataset 回總覽（不需 token） | [資料品質保證](https://finmind.github.io/DataQuality/) `summary.json` |
